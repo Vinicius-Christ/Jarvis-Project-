@@ -47,6 +47,9 @@ import LogsDocker from "./components/LogsDocker";
 import DeviceConfig from "./components/DeviceConfig";
 import PackagerModule from "./components/PackagerModule";
 import SystemUpdater from "./components/SystemUpdater";
+import ChromaInspector from "./components/ChromaInspector";
+import CUDATelemetryHUD from "./components/CUDATelemetryHUD";
+import SSHDiagnostics from "./components/SSHDiagnostics";
 
 const HOLO_THEMES = {
   cyan: {
@@ -92,8 +95,8 @@ const HOLO_THEMES = {
 };
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<"dashboard" | "finance" | "agenda" | "settings" | "readme">("dashboard");
-  const [settingsTab, setSettingsTab] = useState<"general" | "appearance" | "installer" | "packager" | "obsidian" | "logs" | "updates">("general");
+  const [activeTab, setActiveTab] = useState<"dashboard" | "finance" | "agenda" | "settings" | "readme" | "diagnostics">("dashboard");
+  const [settingsTab, setSettingsTab] = useState<"general" | "appearance" | "installer" | "obsidian" | "logs" | "updates" | "chromadb" | "cudautil">("general");
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [systemState, setSystemState] = useState<any>(null);
   const [hardwareStats, setHardwareStats] = useState<any>(null);
@@ -608,7 +611,20 @@ export default function App() {
             <Settings className="h-4 w-4 shrink-0" />
             {isSidebarOpen && <span>Configs & IoT</span>}
           </button>
- 
+
+          <button
+            onClick={() => setActiveTab("diagnostics")}
+            className={`flex items-center gap-2 px-3 py-2.5 rounded-lg text-xs font-medium transition cursor-pointer whitespace-nowrap w-full ${
+              activeTab === "diagnostics"
+                ? "bg-[var(--brand-glow)] text-[var(--brand-light)] border border-[var(--brand-border)] font-bold shadow-[0_0_12px_var(--brand-glow-strong)]"
+                : "text-zinc-400 border border-transparent hover:text-zinc-200 hover:bg-zinc-900/60"
+            }`}
+            title="Diagnósticos & SSH"
+          >
+            <Terminal className="h-4 w-4 shrink-0" />
+            {isSidebarOpen && <span>Diagnósticos & SSH</span>}
+          </button>
+
           <button
             onClick={() => setActiveTab("readme")}
             className={`flex items-center gap-2 px-3 py-2.5 rounded-lg text-xs font-medium transition cursor-pointer whitespace-nowrap w-full ${
@@ -958,34 +974,53 @@ export default function App() {
 
               {/* Hardware Spec monitors (simulating Windows child monitoring threads) */}
               <div className="bg-zinc-900/30 border border-zinc-850 p-4 rounded-2xl space-y-4">
-                <h3 className="text-xs font-mono font-medium tracking-wider text-[var(--brand-light)] uppercase border-l border-[var(--brand-primary)] pl-2">
-                  Métricas de VRAM & Processamento
-                </h3>
+                <div className="flex justify-between items-center border-l border-[var(--brand-primary)] pl-2">
+                  <h3 className="text-xs font-mono font-medium tracking-wider text-[var(--brand-light)] uppercase">
+                    Métricas de VRAM & Processamento
+                  </h3>
+                  <button
+                    onClick={() => { setActiveTab("settings"); setSettingsTab("cudautil"); }}
+                    className="text-[9px] text-zinc-500 hover:text-[var(--brand-light)] underline cursor-pointer uppercase font-mono"
+                  >
+                    HUD Detalhado
+                  </button>
+                </div>
                 
                 <div className="space-y-3 font-mono text-xs">
                   <div>
                     <div className="flex justify-between text-[11px] mb-1">
-                      <span className="text-zinc-500 uppercase">GPU VRAM ({hardwareStats?.gpus?.[0]?.model || "RTX 4070 Ti"})</span>
-                      <span className="text-[var(--brand-light)]">{hardwareStats?.gpus?.[0]?.vram ? (hardwareStats.gpus[0].vram / 1024).toFixed(1) + " GB" : "12.0 GB"}</span>
+                      <span className="text-zinc-500 uppercase truncate max-w-[150px]" title={hardwareStats?.gpuModel || "Dispositivo CUDA"}>
+                        GPU VRAM ({hardwareStats?.gpuModel ? hardwareStats.gpuModel.replace("NVIDIA GeForce", "").trim() : "Detectando..."})
+                      </span>
+                      <span className="text-[var(--brand-light)]">
+                        {hardwareStats?.gpuVramUsed 
+                          ? `${(hardwareStats.gpuVramUsed / 1024).toFixed(1)} GB / ${(hardwareStats.gpuVramTotal ? hardwareStats.gpuVramTotal / 1024 : 12.0).toFixed(1)} GB`
+                          : "4.2 GB / 12.0 GB"}
+                      </span>
                     </div>
                     <div className="w-full bg-zinc-950 h-1.5 rounded overflow-hidden">
-                      <div className="bg-[var(--brand-primary)] h-full w-[62%]"></div>
+                      <div
+                        className="bg-[var(--brand-primary)] h-full transition-all duration-500 animate-pulse"
+                        style={{ width: `${hardwareStats?.gpuVramUsed ? Math.round((hardwareStats.gpuVramUsed / (hardwareStats.gpuVramTotal || 12288)) * 100) : 38}%` }}
+                      ></div>
                     </div>
                   </div>
 
                   <div>
                     <div className="flex justify-between text-[11px] mb-1">
-                      <span className="text-zinc-500 uppercase">Temperatura CUDA</span>
-                      <span className="text-red-400">{hardwareStats?.cpuTemps > 0 ? (hardwareStats.cpuTemps).toFixed(0) : "64"} °C (Seguro)</span>
+                      <span className="text-zinc-500 uppercase">Temperatura GPU</span>
+                      <span className="text-red-400">{hardwareStats?.gpuTemp || 58} °C (Seguro)</span>
                     </div>
                     <div className="w-full bg-zinc-950 h-1.5 rounded overflow-hidden">
-                      <div className={`h-full bg-red-500 transition-all`} style={{ width: `${Math.min(100, Math.max(0, hardwareStats?.cpuTemps || 52))}%` }}></div>
+                      <div className="h-full bg-red-500 transition-all cursor-pulse" style={{ width: `${Math.min(100, Math.max(0, hardwareStats?.gpuTemp || 58))}%` }}></div>
                     </div>
                   </div>
 
                   <div>
                     <div className="flex justify-between text-[11px] mb-1">
-                      <span className="text-zinc-500 uppercase">Uso de CPU ({hardwareStats?.cpu || "Desktop Ryzen 7"})</span>
+                      <span className="text-zinc-500 uppercase truncate max-w-[180px]" title={hardwareStats?.cpu || "Host CPU"}>
+                        CPU ({hardwareStats?.cpu ? hardwareStats.cpu.replace("(TM)", "").replace("(R)", "").trim() : "Detectando..."})
+                      </span>
                       <span className="text-[var(--brand-light)]">{hardwareStats?.cpuUsage || 38}%</span>
                     </div>
                     <div className="w-full bg-zinc-950 h-1.5 rounded overflow-hidden">
@@ -1347,17 +1382,7 @@ export default function App() {
                     : "border-transparent text-zinc-500 hover:text-zinc-300"
                 }`}
               >
-                📦 Core Engine
-              </button>
-              <button
-                onClick={() => setSettingsTab("packager")}
-                className={`px-4 py-2 border-b-2 font-bold tracking-wider transition-all cursor-pointer whitespace-nowrap ${
-                  settingsTab === "packager"
-                    ? "border-emerald-500 text-emerald-400 bg-emerald-500/10"
-                    : "border-transparent text-zinc-500 hover:text-zinc-300"
-                }`}
-              >
-                💿 Deploy / Setup
+                📦 Core Engine & Logs
               </button>
               <button
                 onClick={() => setSettingsTab("obsidian")}
@@ -1368,16 +1393,6 @@ export default function App() {
                 }`}
               >
                 📝 Obsidian Vault
-              </button>
-              <button
-                onClick={() => setSettingsTab("logs")}
-                className={`px-4 py-2 border-b-2 font-bold tracking-wider transition-all cursor-pointer whitespace-nowrap ${
-                  settingsTab === "logs"
-                    ? "border-[var(--brand-primary)] text-[var(--brand-light)] bg-[var(--brand-glow)]"
-                    : "border-transparent text-zinc-500 hover:text-zinc-300"
-                }`}
-              >
-                Terminal Logs
               </button>
               <button
                 onClick={() => setSettingsTab("updates")}
@@ -1392,6 +1407,26 @@ export default function App() {
                   <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping"></span>
                 )}
               </button>
+              <button
+                onClick={() => setSettingsTab("chromadb")}
+                className={`px-4 py-2 border-b-2 font-bold tracking-wider transition-all cursor-pointer whitespace-nowrap ${
+                  settingsTab === "chromadb"
+                    ? "border-cyan-500 text-cyan-400 bg-cyan-500/10"
+                    : "border-transparent text-zinc-500 hover:text-zinc-300"
+                }`}
+              >
+                🧠 Memória ChromaDB
+              </button>
+              <button
+                onClick={() => setSettingsTab("cudautil")}
+                className={`px-4 py-2 border-b-2 font-bold tracking-wider transition-all cursor-pointer whitespace-nowrap ${
+                  settingsTab === "cudautil"
+                    ? "border-indigo-500 text-indigo-400 bg-indigo-500/10"
+                    : "border-transparent text-zinc-500 hover:text-zinc-300"
+                }`}
+              >
+                📊 Telemetria CUDA HUD
+              </button>
             </div>
 
             {(settingsTab === "general" || settingsTab === "appearance") && (
@@ -1405,20 +1440,15 @@ export default function App() {
             )}
 
             {settingsTab === "installer" && (
-              <div className="bg-zinc-950/10 border border-zinc-900 p-1 rounded-xl">
-                <Installer
-                  installerState={systemState?.installer}
-                  onRefresh={fetchSystemState}
-                />
+              <div className="space-y-6">
+                <LogsDocker />
+                <div className="bg-zinc-950/10 border border-zinc-900 p-1 rounded-xl">
+                  <Installer
+                    installerState={systemState?.installer}
+                    onRefresh={fetchSystemState}
+                  />
+                </div>
               </div>
-            )}
-
-            {settingsTab === "packager" && (
-              <PackagerModule />
-            )}
-
-            {settingsTab === "logs" && (
-              <LogsDocker />
             )}
 
             {settingsTab === "updates" && (
@@ -1489,6 +1519,21 @@ export default function App() {
                 </div>
               </div>
             )}
+
+            {settingsTab === "chromadb" && (
+              <ChromaInspector />
+            )}
+
+            {settingsTab === "cudautil" && (
+              <CUDATelemetryHUD />
+            )}
+          </div>
+        )}
+
+        {/* TAB: SSH & DIAGNOSTICS */}
+        {activeTab === "diagnostics" && (
+          <div className="space-y-6 flex flex-col h-full overflow-hidden">
+            <SSHDiagnostics />
           </div>
         )}
 

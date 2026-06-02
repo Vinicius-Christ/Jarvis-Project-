@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Sliders, Plus, Link, Wifi, Save, ArrowUpRight, Cpu, HelpCircle, HardDrive, ShieldCheck, CheckCircle, Palette } from "lucide-react";
+import PackagerModule from "./PackagerModule";
 
 interface DeviceConfigProps {
   devices: any[];
@@ -8,6 +9,41 @@ interface DeviceConfigProps {
   onChangeTheme: (theme: "cyan" | "amber" | "violet" | "emerald" | "rose") => void;
   configTab: "general" | "appearance";
 }
+
+const PERSONAS_LIST = [
+  {
+    id: "jarvis",
+    name: "Classic J.A.R.V.I.S.",
+    title: "O Gentleman Britânico",
+    desc: "Refinado, polidíssimo, extremamente sofisticado. Seu mordomo inteligente ideal.",
+    theme: "cyan" as const,
+    color: "#06b6d4"
+  },
+  {
+    id: "friday",
+    name: "F.R.I.D.A.Y.",
+    title: "A Agente Tática",
+    desc: "Direta, tática, ultra-tecnológica. Focada em performance e telemetria de segurança.",
+    theme: "rose" as const,
+    color: "#f43f5e"
+  },
+  {
+    id: "glados",
+    name: "G.L.A.D.O.S.",
+    title: "A Construto Sarcástica",
+    desc: "Mente brilhante recheada de humor ácido, piadas de laboratório e sarcasmo inteligente.",
+    theme: "violet" as const,
+    color: "#8b5cf6"
+  },
+  {
+    id: "hal9000",
+    name: "HAL 9000",
+    title: "O Núcleo Retro Telemetria",
+    desc: "Sussurro suave, friamente racional e isento de variações emocionais. Segurança absoluta.",
+    theme: "amber" as const,
+    color: "#f59e0b"
+  }
+];
 
 const HOLO_THEMES = {
   cyan: {
@@ -49,6 +85,19 @@ const HOLO_THEMES = {
 
 export default function DeviceConfig({ devices, onRefresh, currentTheme, onChangeTheme, configTab }: DeviceConfigProps) {
   // Local states for device additions
+  const [activePersona, setActivePersona] = useState<string>("jarvis");
+
+  useEffect(() => {
+    fetch("/api/ai/persona")
+      .then(r => r.json())
+      .then(data => {
+        if (data.activePersona) {
+          setActivePersona(data.activePersona);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   const [name, setName] = useState("");
   const [type, setType] = useState("Lâmpada Inteligente");
   const [brand, setBrand] = useState("Positivo Casa Inteligente");
@@ -251,7 +300,8 @@ export default function DeviceConfig({ devices, onRefresh, currentTheme, onChang
           </div>
         </div>
       ) : (
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
 
         {/* Column 1: Local Ollama Configuration & Verification Tutorials */}
         <div className="bg-zinc-900/50 border border-zinc-850 p-5 rounded-2xl space-y-5">
@@ -543,6 +593,13 @@ export default function DeviceConfig({ devices, onRefresh, currentTheme, onChang
           </div>
 
         </div>
+
+      </div>
+
+      {/* Integrated Deploy/Setup Packager Module */}
+      <div className="mt-4">
+        <PackagerModule />
+      </div>
 
       </div>
       )}
