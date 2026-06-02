@@ -26,6 +26,8 @@ Name: "startup"; Description: "Iniciar o JARVIS com o Windows (Em segundo plano)
 [Files]
 ; Copia o binário unificado do servidor compilado em CJS/EXE para a pasta de arquivos de programas
 Source: "dist\server.cjs"; DestDir: "{app}"; Flags: ignoreversion
+; Copia o script de instalação automatizada de dependências e ecossistema
+Source: "AutoInstaller.ps1"; DestDir: "{app}"; Flags: ignoreversion
 ; Copia a build do Frontend React compilada
 Source: "dist\*"; DestDir: "{app}\dist"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; Copia os arquivos de banco de dados locais e configurações
@@ -41,7 +43,11 @@ Name: "{commondesktop}\JARVIS Core Suite"; Filename: "{app}\server.cjs"; IconFil
 Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Run"; ValueType: string; ValueName: "JARVISCore"; ValueData: """{app}\server.cjs"" --background"; Flags: uninsdeletevalue; Tasks: startup
 
 [Run]
+; Executa o ativador do ecossistema e instalador de dependências nativas (Docker, Ollama, Obsidian, Modelos RAG)
+Filename: "powershell.exe"; Parameters: "-ExecutionPolicy Bypass -File ""{app}\AutoInstaller.ps1"""; Flags: runascurrentuser postinstall; Description: "Instalar e Configurar Ecossistema JARVIS Completo (Docker, Ollama, Obsidian, Modelos de IA e Vault)"
+
 ; Inicializa a pilha de serviços Docker compose locais ao finalizar a instalação física
-Filename: "powershell.exe"; Parameters: "-Command ""Set-Location '{app}'; docker compose up -d"""; Flags: runhidden
+Filename: "powershell.exe"; Parameters: "-Command ""Set-Location '{app}'; docker compose up -d"""; Flags: runhidden postinstall; Description: "Iniciar Containers Docker do Sistema (ChromaDB, PostgreSQL, n8n)"
+
 ; Executa o backend invisivelmente
 Filename: "{app}\server.cjs"; Description: "{cm:LaunchProgram,JARVIS Core Suite}"; Flags: shellexec runascurrentuser postinstall nowait

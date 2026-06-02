@@ -46,6 +46,7 @@ import JarvisAssistant from "./components/JarvisAssistant";
 import LogsDocker from "./components/LogsDocker";
 import DeviceConfig from "./components/DeviceConfig";
 import PackagerModule from "./components/PackagerModule";
+import SystemUpdater from "./components/SystemUpdater";
 
 const HOLO_THEMES = {
   cyan: {
@@ -92,13 +93,24 @@ const HOLO_THEMES = {
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<"dashboard" | "finance" | "agenda" | "settings" | "readme">("dashboard");
-  const [settingsTab, setSettingsTab] = useState<"general" | "appearance" | "installer" | "packager" | "obsidian" | "logs">("general");
+  const [settingsTab, setSettingsTab] = useState<"general" | "appearance" | "installer" | "packager" | "obsidian" | "logs" | "updates">("general");
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [systemState, setSystemState] = useState<any>(null);
   const [hardwareStats, setHardwareStats] = useState<any>(null);
   const [timeStr, setTimeStr] = useState("");
   const [copiedScript, setCopiedScript] = useState(false);
   const [selectedPreset, setSelectedPreset] = useState("Modo Trabalho");
+
+  // Motor de Auto-Atualização sem perda de dados
+  const [updateState, setUpdateState] = useState<any>({
+    status: "idle",
+    progress: 0,
+    localCommit: "",
+    remoteCommit: "",
+    remoteMessage: "",
+    logs: [],
+    githubRepo: "viniciusc-castro09/jarvis-system-suite"
+  });
 
   const [financeForm, setFinanceForm] = useState({ value: "", type: "Despesa", category: "Educação", description: "" });
   const [goalForm, setGoalForm] = useState({ limit: "", reason: "" });
@@ -167,6 +179,15 @@ export default function App() {
     }
   };
 
+  const fetchUpdateState = async () => {
+    try {
+      const res = await fetch("/api/system/update/status");
+      if (res.ok) {
+        setUpdateState(await res.json());
+      }
+    } catch (err) {}
+  };
+
   const fetchHardwareStats = async () => {
     try {
       const res = await fetch("/api/system/hardware");
@@ -179,9 +200,15 @@ export default function App() {
   useEffect(() => {
     fetchSystemState();
     fetchHardwareStats();
+    fetchUpdateState();
+    
+    // Auto check update once on startup
+    fetch("/api/system/update/check").then(() => fetchUpdateState()).catch(() => {});
+
     // Poll state every 1.5 seconds to watch simulated live installation
     const interval = setInterval(() => {
       fetchSystemState();
+      fetchUpdateState();
     }, 1500);
     const hwInterval = setInterval(() => {
       fetchHardwareStats();
@@ -540,9 +567,9 @@ export default function App() {
              title="Painel de Controle (HUD)"
           >
             <Sliders className="h-4 w-4 shrink-0" />
-            {isSidebarOpen && <span>[1] Painel de Controle</span>}
+            {isSidebarOpen && <span>Painel de Controle</span>}
           </button>
-
+ 
           <button
             onClick={() => setActiveTab("finance")}
             className={`flex items-center gap-2 px-3 py-2.5 rounded-lg text-xs font-medium transition cursor-pointer whitespace-nowrap w-full ${
@@ -553,9 +580,9 @@ export default function App() {
             title="Financeiro"
           >
             <Database className="h-4 w-4 shrink-0" />
-            {isSidebarOpen && <span>[2] Financeiro</span>}
+            {isSidebarOpen && <span>Financeiro</span>}
           </button>
-
+ 
           <button
             onClick={() => setActiveTab("agenda")}
             className={`flex items-center gap-2 px-3 py-2.5 rounded-lg text-xs font-medium transition cursor-pointer whitespace-nowrap w-full ${
@@ -566,9 +593,9 @@ export default function App() {
             title="Agenda"
           >
             <BookOpen className="h-4 w-4 shrink-0" />
-            {isSidebarOpen && <span>[3] Agenda</span>}
+            {isSidebarOpen && <span>Agenda</span>}
           </button>
-
+ 
           <button
             onClick={() => setActiveTab("settings")}
             className={`flex items-center gap-2 px-3 py-2.5 rounded-lg text-xs font-medium transition cursor-pointer whitespace-nowrap w-full ${
@@ -579,9 +606,9 @@ export default function App() {
             title="Configurações & IoT"
           >
             <Settings className="h-4 w-4 shrink-0" />
-            {isSidebarOpen && <span>[4] Configs & IoT</span>}
+            {isSidebarOpen && <span>Configs & IoT</span>}
           </button>
-
+ 
           <button
             onClick={() => setActiveTab("readme")}
             className={`flex items-center gap-2 px-3 py-2.5 rounded-lg text-xs font-medium transition cursor-pointer whitespace-nowrap w-full ${
@@ -592,7 +619,7 @@ export default function App() {
             title="Documentação Técnica (README)"
           >
             <Info className="h-4 w-4 shrink-0" />
-            {isSidebarOpen && <span>[5] Documentação</span>}
+            {isSidebarOpen && <span>Documentação</span>}
           </button>
         </nav>
         
@@ -662,6 +689,28 @@ export default function App() {
           </div>
         </div>
       </header>
+
+      {/* Holographic Notification Update Strip */}
+      {updateState && updateState.status === "available" && (
+        <div className="mb-6 flex flex-col md:flex-row items-center justify-between gap-4 p-4 border border-cyan-500/30 bg-cyan-950/10 hover:bg-cyan-950/20 text-cyan-200 rounded-2xl font-mono text-xs shadow-[0_0_15px_rgba(6,182,212,0.08)] transition-all">
+          <div className="flex items-center gap-3">
+            <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping shrink-0"></span>
+            <div>
+              <span className="font-bold text-white uppercase tracking-wider block sm:inline">[🔄 ATUALIZAÇÃO REPOSITÓRIO] </span>
+              <span>Uma nova alteração de código-fonte foi sincronizada no Git remoto. Commit: <span className="text-cyan-400 bg-zinc-950 px-1.5 py-0.5 rounded border border-zinc-850 font-bold">{updateState.remoteCommit}</span> - "{updateState.remoteMessage}"</span>
+            </div>
+          </div>
+          <button
+            onClick={() => {
+              setActiveTab("settings");
+              setSettingsTab("updates");
+            }}
+            className="px-4 py-1.5 bg-cyan-500/15 hover:bg-cyan-500 hover:text-black hover:shadow-[0_0_15px_rgba(6,182,212,0.4)] border border-cyan-500/50 text-cyan-300 font-bold tracking-wider rounded transition-all cursor-pointer whitespace-nowrap active:scale-95"
+          >
+            Sincronizar Código Agora
+          </button>
+        </div>
+      )}
 
       {/* Main Container Dashboard */}
       <main className="flex-1 overflow-visible mb-6 flex flex-col w-full relative">
@@ -1266,9 +1315,9 @@ export default function App() {
           </div>
         )}
 
-        {/* TAB 4: CONFIGURAÇÕES, IOT & FERRAMENTAS */}
+        {/* TAB 4: CONFIGURAÇÕES & IOT */}
         {activeTab === "settings" && (
-          <div className="space-y-6">
+          <div className="space-y-6 flex flex-col h-full overflow-hidden">
             <div className="flex gap-2 border-b border-zinc-850 pb-px font-mono text-xs shrink-0 overflow-x-auto">
               <button
                 onClick={() => setSettingsTab("general")}
@@ -1278,7 +1327,7 @@ export default function App() {
                     : "border-transparent text-zinc-500 hover:text-zinc-300"
                 }`}
               >
-                [⚙️] Configurações & IoT
+                ⚙️ Configurações & IoT
               </button>
               <button
                 onClick={() => setSettingsTab("appearance")}
@@ -1288,7 +1337,7 @@ export default function App() {
                     : "border-transparent text-zinc-500 hover:text-zinc-300"
                 }`}
               >
-                [🎨] Aparência
+                🎨 Aparência
               </button>
               <button
                 onClick={() => setSettingsTab("installer")}
@@ -1298,7 +1347,7 @@ export default function App() {
                     : "border-transparent text-zinc-500 hover:text-zinc-300"
                 }`}
               >
-                [📦] Core Engine
+                📦 Core Engine
               </button>
               <button
                 onClick={() => setSettingsTab("packager")}
@@ -1308,7 +1357,7 @@ export default function App() {
                     : "border-transparent text-zinc-500 hover:text-zinc-300"
                 }`}
               >
-                [💿] Deploy / Setup
+                💿 Deploy / Setup
               </button>
               <button
                 onClick={() => setSettingsTab("obsidian")}
@@ -1318,7 +1367,7 @@ export default function App() {
                     : "border-transparent text-zinc-500 hover:text-zinc-300"
                 }`}
               >
-                [📝] Obsidian Vault
+                📝 Obsidian Vault
               </button>
               <button
                 onClick={() => setSettingsTab("logs")}
@@ -1328,7 +1377,20 @@ export default function App() {
                     : "border-transparent text-zinc-500 hover:text-zinc-300"
                 }`}
               >
-                [Terminal] Logs
+                Terminal Logs
+              </button>
+              <button
+                onClick={() => setSettingsTab("updates")}
+                className={`px-4 py-2 border-b-2 font-bold tracking-wider transition-all cursor-pointer whitespace-nowrap relative ${
+                  settingsTab === "updates"
+                    ? "border-cyan-500 text-cyan-400 bg-cyan-500/10"
+                    : "border-transparent text-zinc-500 hover:text-zinc-300"
+                }`}
+              >
+                🔄 Atualizações
+                {updateState?.status === "available" && (
+                  <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping"></span>
+                )}
               </button>
             </div>
 
@@ -1357,6 +1419,13 @@ export default function App() {
 
             {settingsTab === "logs" && (
               <LogsDocker />
+            )}
+
+            {settingsTab === "updates" && (
+              <SystemUpdater
+                updateState={updateState}
+                onRefresh={fetchUpdateState}
+              />
             )}
 
             {settingsTab === "obsidian" && (

@@ -69,14 +69,47 @@ if (fs.existsSync(DB_FILE)) {
   }
 }
 
-// Auto-save function
+// Auto-save function - Optimized to be asynchronous and non-blocking with a serialized queue
+let isSaving = false;
+let saveScheduled = false;
+
 function saveDB() {
+  if (isSaving) {
+    saveScheduled = true;
+    return;
+  }
+  isSaving = true;
+  saveScheduled = false;
+  
+  fs.writeFile(DB_FILE, JSON.stringify(db, null, 2), "utf8", (err) => {
+    isSaving = false;
+    if (err) {
+      console.error("Falha ao salvar db.json assincronamente:", err.message);
+    }
+    if (saveScheduled) {
+      saveDB();
+    }
+  });
+}
+
+// Fallback synchronous save on shutdown or SIGTERM
+function saveDBSync() {
   try {
     fs.writeFileSync(DB_FILE, JSON.stringify(db, null, 2));
   } catch (err) {
-    console.error("Falha ao salvar db.json:", err.message);
+    console.error("Falha ao salvar db.json sincronamente na finalização:", err.message);
   }
 }
+
+process.on("exit", saveDBSync);
+process.on("SIGINT", () => {
+  saveDBSync();
+  process.exit(0);
+});
+process.on("SIGTERM", () => {
+  saveDBSync();
+  process.exit(0);
+});
 
 
 // Main system prompt for JARVIS acting via Gemini
@@ -234,7 +267,7 @@ A meta foi salva no banco local do Obsidian com sucesso, mestre.`;
 
   // 5. Save and respond
   const displayText = file ? `${message} (📂 Anexo: ${file.name})` : message;
-  const modelLabel = isLocalSimulated ? `${requestedModel.toUpperCase()} [Cloud Mock]` : `${requestedModel.toUpperCase()} [Native Local]`;
+  const modelLabel = isLocalSimulated ? `${ollamaModelName.toUpperCase()} [Cloud Mock]` : `${ollamaModelName.toUpperCase()} [Native Local]`;
   
   db.conversations.push({ sender: "User", text: displayText, time: new Date().toISOString() });
   db.conversations.push({ sender: "JARVIS", text: replyText, time: new Date().toISOString() });
@@ -253,6 +286,7 @@ app.get("/api/db", (req, res) => {
   res.json(db);
 });
 
+let staticHardware: { cpu: string; gpus: any[] } | null = null;
 let cachedHardware: any = null;
 let lastHardwareFetchTime = 0;
 
@@ -263,19 +297,28 @@ app.get("/api/system/hardware", async (req, res) => {
   }
 
   try {
-    const cpu = await si.cpu();
-    const temps = await si.cpuTemperature();
-    const currentLoad = await si.currentLoad();
-    const graphics = await si.graphics();
+    if (!staticHardware) {
+      const [cpu, graphics] = await Promise.all([si.cpu(), si.graphics()]);
+      staticHardware = {
+        cpu: cpu.brand || "Unknown CPU",
+        gpus: (graphics?.controllers || []).map(g => ({
+          model: g.model || "Unknown GPU",
+          vram: g.vram || 0
+        }))
+      };
+    }
+    
+    // Query dynamic hardware metrics concurrently
+    const [temps, currentLoad] = await Promise.all([
+      si.cpuTemperature(),
+      si.currentLoad()
+    ]);
     
     cachedHardware = {
-      cpu: cpu.brand || "Unknown CPU",
+      cpu: staticHardware.cpu,
       cpuUsage: Math.round(currentLoad.currentLoad) || 0,
       cpuTemps: temps.main || 0,
-      gpus: graphics.controllers.map(g => ({
-        model: g.model || "Unknown GPU",
-        vram: g.vram || 0
-      }))
+      gpus: staticHardware.gpus
     };
     lastHardwareFetchTime = now;
     res.json(cachedHardware);
@@ -636,6 +679,278 @@ app.get("/api/system/health", async (req, res) => {
     ollama: { status: ollamaStatus, latency: ollamaLatency },
     localDb: { status: "online", latency: localDbLatency }
   });
+});
+
+// Local updater memory state (persisted when active)
+let updaterState = {
+  status: "idle", // "idle", "checking", "available", "up-to-date", "updating", "completed", "error"
+  progress: 0,
+  localCommit: "",
+  localVersion: "5.0.0",
+  remoteCommit: "",
+  remoteVersion: "5.0.0",
+  remoteMessage: "",
+  logs: [] as string[],
+  githubRepo: "viniciusc-castro09/jarvis-system-suite"
+};
+
+// If repo is configured in db, load it
+if (!(db as any).githubRepo) {
+  (db as any).githubRepo = "viniciusc-castro09/jarvis-system-suite";
+  saveDB();
+} else {
+  updaterState.githubRepo = (db as any).githubRepo;
+}
+
+function getLocalCommitSync() {
+  try {
+    return require("child_process").execSync("git rev-parse --short HEAD", { timeout: 3000, encoding: "utf8" }).trim();
+  } catch (err) {
+    return "v5.0-local";
+  }
+}
+
+function copyFolderRecursiveSync(src: string, dest: string) {
+  if (!fs.existsSync(dest)) {
+    fs.mkdirSync(dest, { recursive: true });
+  }
+  const entries = fs.readdirSync(src, { withFileTypes: true });
+  for (const entry of entries) {
+    const srcPath = path.join(src, entry.name);
+    const destPath = path.join(dest, entry.name);
+    
+    if (entry.name === "data" || entry.name === ".env" || entry.name === "node_modules" || entry.name === ".git") {
+      continue; // Skip user database, env settings, packages and local git config
+    }
+    
+    if (entry.isDirectory()) {
+      copyFolderRecursiveSync(srcPath, destPath);
+    } else {
+      fs.copyFileSync(srcPath, destPath);
+    }
+  }
+}
+
+app.get("/api/system/update/status", (req, res) => {
+  updaterState.githubRepo = (db as any).githubRepo || "viniciusc-castro09/jarvis-system-suite";
+  res.json(updaterState);
+});
+
+app.post("/api/system/update/config", (req, res) => {
+  const { githubRepo } = req.body;
+  if (githubRepo) {
+    (db as any).githubRepo = githubRepo;
+    updaterState.githubRepo = githubRepo;
+    saveDB();
+  }
+  res.json({ success: true, githubRepo: updaterState.githubRepo });
+});
+
+app.get("/api/system/update/check", async (req, res) => {
+  updaterState.status = "checking";
+  updaterState.logs = ["[UPDATE] Buscando atualizações no repositório remoto: " + updaterState.githubRepo];
+  
+  try {
+    const localCommit = getLocalCommitSync();
+    updaterState.localCommit = localCommit;
+    
+    const repoMatch = updaterState.githubRepo.split("/");
+    if (repoMatch.length !== 2) {
+      throw new Error("Formato de repositório inválido. Use 'usuario/nome-repo'.");
+    }
+    
+    // Config User-Agent header and standard timeout
+    const commitRes = await fetch(
+      `https://api.github.com/repos/${updaterState.githubRepo}/commits/main`,
+      {
+        headers: {
+          "User-Agent": "JARVIS-Core-Suite-v5.0-Updater",
+          "Accept": "application/vnd.github.v3+json"
+        },
+        signal: AbortSignal.timeout(10000)
+      } as any
+    );
+    
+    if (!commitRes.ok) {
+      throw new Error(`Git remoto não pôde ser lido. Status: ${commitRes.status}`);
+    }
+    
+    const commitData = (await commitRes.json()) as any;
+    const remoteFullCommit = commitData.sha || "";
+    const remoteCommit = remoteFullCommit.substring(0, 7) || "unknown";
+    const commitMsg = commitData.commit?.message || "Sem descrição de alteração.";
+    
+    updaterState.remoteCommit = remoteCommit;
+    updaterState.remoteMessage = commitMsg;
+    
+    updaterState.logs.push(`[UPDATE] Hash local: ${localCommit}`);
+    updaterState.logs.push(`[UPDATE] Hash remoto: ${remoteCommit}`);
+    updaterState.logs.push(`[UPDATE] Feed do commit: "${commitMsg}"`);
+    
+    if (localCommit === remoteCommit) {
+      updaterState.status = "up-to-date";
+      updaterState.logs.push("[UPDATE] O seu Jarvis já possui todas as atualizações sincronizadas, senhor.");
+    } else {
+      updaterState.status = "available";
+      updaterState.logs.push(`[UPDATE] Sincronia de nova versão disponível!`);
+    }
+  } catch (error: any) {
+    updaterState.status = "error";
+    updaterState.logs.push(`[ERRO] Falha ao verificar atualizações: ${error.message}`);
+  }
+  
+  res.json(updaterState);
+});
+
+app.post("/api/system/update/run", (req, res) => {
+  if (updaterState.status === "updating") {
+    return res.json({ message: "Sincronização já está ativa, senhor." });
+  }
+
+  updaterState.status = "updating";
+  updaterState.progress = 5;
+  updaterState.logs = ["[UPDATE] [INICIANDO] Iniciando fluxo de auto-sincronia do repositório..."];
+
+  const runUpdate = async () => {
+    try {
+      // 1. Check if git is available
+      let useGit = false;
+      try {
+        const checkGit = require("child_process").execSync("git status", { timeout: 3000, encoding: "utf8" });
+        useGit = true;
+        updaterState.logs.push("[UPDATE] Repositório Git local validado. Usando 'git pull' nativo.");
+      } catch (e) {
+        updaterState.logs.push("[UPDATE] Git local não configurado ou ausente. Efetuando pull direto da Web API (fallback).");
+      }
+
+      if (useGit) {
+        updaterState.progress = 20;
+        updaterState.logs.push("[GIT] [PROCESSO] Efetuando pull das últimas mudanças do branch 'main'...");
+        
+        await new Promise<void>((resolve, reject) => {
+          exec("git pull origin main", { timeout: 30000 }, (err, stdout, stderr) => {
+            if (err) {
+              updaterState.logs.push(`[AVISO] git pull origin main falhou: ${stderr || err.message}`);
+              updaterState.logs.push("[GIT] Tentando apenas 'git pull' sem amarrações...");
+              exec("git pull", { timeout: 30000 }, (err2, stdout2, stderr2) => {
+                if (err2) reject(new Error("Falha no comando de pull do Git: " + (stderr2 || err2.message)));
+                else {
+                  updaterState.logs.push(stdout2 || "[GIT] Pull realizado com sucesso.");
+                  resolve();
+                }
+              });
+            } else {
+              updaterState.logs.push(stdout || "[GIT] Mudanças locais sincronizadas com sucesso.");
+              resolve();
+            }
+          });
+        });
+      } else {
+        // Fallback: Download ZIP and extract it directly
+        updaterState.progress = 15;
+        const tempZipFile = path.join(process.cwd(), "temp_update.zip");
+        const tempExtractDir = path.join(process.cwd(), "temp_extract");
+
+        updaterState.logs.push(`[WEB] Efetuando download de ZIP seguro da stack: https://github.com/${updaterState.githubRepo}/archive/refs/heads/main.zip`);
+        
+        // Clean old updates temp files
+        if (fs.existsSync(tempZipFile)) fs.unlinkSync(tempZipFile);
+        if (fs.existsSync(tempExtractDir)) fs.rmSync(tempExtractDir, { recursive: true, force: true });
+
+        // Fetch zip
+        const zipRes = await fetch(`https://github.com/${updaterState.githubRepo}/archive/refs/heads/main.zip`, {
+          headers: { "User-Agent": "JARVIS-Suite-Downloader" },
+          signal: AbortSignal.timeout(60000)
+        } as any);
+
+        if (!zipRes.ok) {
+          throw new Error(`Falha ao baixar ZIP de atualização. Código: ${zipRes.status}`);
+        }
+
+        const buffer = await zipRes.arrayBuffer();
+        fs.writeFileSync(tempZipFile, Buffer.from(buffer));
+        updaterState.logs.push("[WEB] Download concluído com sucesso. Iniciando descompressão pelo Windows PowerShell...");
+        updaterState.progress = 35;
+
+        // Perform PowerShell Expand-Archive (built-in in Windows)
+        await new Promise<void>((resolve, reject) => {
+          const pcmd = `powershell -Command "Expand-Archive -Path '${tempZipFile}' -DestinationPath '${tempExtractDir}' -Force"`;
+          exec(pcmd, { timeout: 30000 }, (err, stdout, stderr) => {
+            if (err) reject(new Error("PowerShell falhou ao extrair ZIP: " + stderr));
+            else resolve();
+          });
+        });
+
+        updaterState.logs.push("[WEB] ZIP extraído. Iniciando substituição seletiva dos arquivos do sistema...");
+        updaterState.progress = 50;
+
+        // Look for extracted project folder inside tempExtractDir
+        const dirs = fs.readdirSync(tempExtractDir);
+        if (dirs.length === 0) {
+          throw new Error("Download do pacote corrompido ou pasta vazia.");
+        }
+        const extractedProjectFolder = path.join(tempExtractDir, dirs[0]);
+
+        // Copy recursive
+        copyFolderRecursiveSync(extractedProjectFolder, process.cwd());
+
+        // Perform clean up
+        fs.unlinkSync(tempZipFile);
+        fs.rmSync(tempExtractDir, { recursive: true, force: true });
+        updaterState.logs.push("[WEB] Replicação completa de arquivos. Banco de dados e configurações locais preservadas!");
+      }
+
+      // 2. Perform library checkout packages update (npm install)
+      updaterState.progress = 70;
+      updaterState.logs.push("[NPM] [PROCESSO] Sincronizando novas dependências via 'npm install'...");
+      await new Promise<void>((resolve, reject) => {
+        exec("npm install", { timeout: 60000 }, (err, stdout, stderr) => {
+          if (err) {
+            // Ignore warnings, reject only fatal errors
+            if (stdout && !err.message.includes("ERR!")) {
+               resolve();
+            } else {
+               reject(new Error("Falha ao instalar dependências: " + err.message));
+            }
+          } else {
+            resolve();
+          }
+        });
+      });
+
+      // 3. Compile physical bundles (npm run build)
+      updaterState.progress = 85;
+      updaterState.logs.push("[BUILD] [PROCESSO] Iniciando compilação de produção com Vite e CJS Bundler...");
+      await new Promise<void>((resolve, reject) => {
+        exec("npm run build", { timeout: 60000 }, (err, stdout, stderr) => {
+          if (err) {
+            reject(new Error("Compilação falhou: " + err.message));
+          } else {
+            updaterState.logs.push("[BUILD] Compilação realizada com sucesso! Código gerado em /dist.");
+            resolve();
+          }
+        });
+      });
+
+      // 4. Completed! Update memory check hash
+      updaterState.progress = 100;
+      updaterState.status = "completed";
+      updaterState.logs.push("[SUCCESS] Sincronização concluída com êxito, senhor!");
+      updaterState.logs.push("[REBOOT] Reiniciando servidor local do JARVIS em 3 segundos para aplicar as atualizações físicas...");
+      
+      setTimeout(() => {
+        console.log("[RESTART] Jarvis reiniciando via auto-update...");
+        process.exit(0);
+      }, 3000);
+
+    } catch (e: any) {
+      updaterState.status = "error";
+      updaterState.logs.push(`[ERRO] Falha no processo de atualização: ${e.message}`);
+    }
+  };
+
+  runUpdate();
+  res.json({ success: true, message: "Processo de atualização inicializado, senhor." });
 });
 
 app.post("/api/update/obsidian", (req, res) => {

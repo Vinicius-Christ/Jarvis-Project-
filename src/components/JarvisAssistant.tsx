@@ -34,6 +34,11 @@ export default function JarvisAssistant({ conversations, onSendMessage }: Jarvis
   const recognitionRef = useRef<any>(null);
   const historyEndRef = useRef<HTMLDivElement>(null);
   const animationRef = useRef<number | null>(null);
+  
+  const appStateRef = useRef(appState);
+  useEffect(() => {
+    appStateRef.current = appState;
+  }, [appState]);
 
   // Global Keyboard Shortcuts (Modo 2)
   useEffect(() => {
@@ -124,6 +129,7 @@ export default function JarvisAssistant({ conversations, onSendMessage }: Jarvis
       ctx.clearRect(0, 0, width, height);
       const cx = width / 2;
       const cy = height / 2;
+      const currentState = appStateRef.current;
 
       // Draw subtle holographic grid rings
       ctx.strokeStyle = "rgba(0, 229, 255, 0.06)";
@@ -135,7 +141,7 @@ export default function JarvisAssistant({ conversations, onSendMessage }: Jarvis
       }
 
       // Draw spinning arcs depending on the active state
-      if (appState === "processing") {
+      if (currentState === "processing") {
         ctx.strokeStyle = "rgba(0, 245, 255, 0.4)";
         ctx.lineWidth = 2;
         ctx.beginPath();
@@ -154,15 +160,15 @@ export default function JarvisAssistant({ conversations, onSendMessage }: Jarvis
         let radiusOffset = 0;
         let color = "rgba(100, 116, 139, 0.5)"; // Default passive zinc
 
-        if (appState === "listening") {
+        if (currentState === "listening") {
           // Pulsing blue dots
           radiusOffset = Math.sin(p.phase + frame * 0.1) * 6;
           color = `rgba(0, 229, 255, ${0.4 + Math.sin(p.phase + frame * 0.05) * 0.2})`;
-        } else if (appState === "processing") {
+        } else if (currentState === "processing") {
           // Rapid revolving cyan loops
           p.angle += p.speed * 2;
           color = "rgba(0, 229, 255, 0.7)";
-        } else if (appState === "speaking") {
+        } else if (currentState === "speaking") {
           // Wave amplitude reactive points
           radiusOffset = Math.sin(p.angle * 6 + frame * 0.15) * 12;
           const hue = (180 + idx * 2) % 360;
@@ -174,11 +180,11 @@ export default function JarvisAssistant({ conversations, onSendMessage }: Jarvis
 
         ctx.fillStyle = color;
         ctx.beginPath();
-        ctx.arc(x, y, p.size + (appState === "speaking" ? 1 : 0), 0, Math.PI * 2);
+        ctx.arc(x, y, p.size + (currentState === "speaking" ? 1 : 0), 0, Math.PI * 2);
         ctx.fill();
 
         // Holographic connectors
-        if (appState === "listening" && idx % 15 === 0) {
+        if (currentState === "listening" && idx % 15 === 0) {
           ctx.strokeStyle = "rgba(0, 229, 255, 0.15)";
           ctx.beginPath();
           ctx.moveTo(cx, cy);
@@ -188,16 +194,16 @@ export default function JarvisAssistant({ conversations, onSendMessage }: Jarvis
       });
 
       // Draw active status description text
-      ctx.fillStyle = appState === "listening" ? "#00E5FF" :
-                      appState === "processing" ? "#FF80AB" :
-                      appState === "speaking" ? "#00E676" : "#4F4F4F";
+      ctx.fillStyle = currentState === "listening" ? "#00E5FF" :
+                      currentState === "processing" ? "#FF80AB" :
+                      currentState === "speaking" ? "#00E676" : "#4F4F4F";
       ctx.font = "10px JetBrains Mono, monospace";
       ctx.textAlign = "center";
       
       let text = "JARVIS DEACTIVATED";
-      if (appState === "listening") text = "LISTENING SENHOR...";
-      if (appState === "processing") text = "AI CUDA COMPUTING";
-      if (appState === "speaking") text = "JARVIS RESPONDING";
+      if (currentState === "listening") text = "LISTENING SENHOR...";
+      if (currentState === "processing") text = "AI CUDA COMPUTING";
+      if (currentState === "speaking") text = "JARVIS RESPONDING";
       
       ctx.fillText(text, cx, cy + 5);
 
@@ -209,7 +215,7 @@ export default function JarvisAssistant({ conversations, onSendMessage }: Jarvis
     return () => {
       if (animationRef.current) cancelAnimationFrame(animationRef.current);
     };
-  }, [appState]);
+  }, []);
 
   const speakResponse = (text: string) => {
     if (!voiceEnabled) return;
