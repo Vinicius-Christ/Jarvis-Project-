@@ -9,16 +9,19 @@ Desenvolvemos um sistema assistente com a interface (Frontend em React) e o "cé
 - ✅ **Servidor Backend (server.ts)**: API pronta para receber a mensagem, juntar com arquivos do "Obsidian" (falsos/locais) e enviar a requisição de texto para a IA do Ollama local.
 - ✅ **Interpretação de Comandos**: A IA foi instruída (via Prompt no código) a responder com tags como `<command type="IoT" ... />` que o Frontend lê maravilhosamente bem e "engatilha" funções na nossa interface.
 - ✅ **Comandos Físicos Modificados**: O código do backend foi alterado para apontar para o seu IPv4 real (`192.168.15.8`) visando integrações reais.
+- ✅ **Inicialização Segura e Robusta Integrada (Electron Resolvido)**:
+  - Corrigido o erro de Tray icon crashando (carregamento de imagem feito de forma dinâmica e segura através de `getTrayIcon()`).
+  - Corrigido o erro de `spawn ENOENT` (adicionado `electron` como dependência dev/build no `package.json`).
+  - Adicionado suporte a execuções nativas acopladas com `shell: true` para commands de pausa/unpause de Docker containers.
 
 ---
 
 ## 🛑 2. Onde Paramos e Por Que Deu Erro?
 Apesar de o nosso código do Jarvis estar excelente e responsivo, a ponte entre o "Código" e a "Sua Máquina Física (Windows)" quebrou nos seguintes pontos vitais:
 
-1. **A Instalação do App Desktop (Falha do Electron)**
-   - **O que aconteceu**: O comando `npm run desktop` falhou com o erro repetido `ENOENT... electron\path.txt`.
-   - **O Motivo**: O instalador global do Electron corrompeu o download do binário no seu Windows (muito comum depender de cache mal baixado pelo *npm*).
-   - **Solução Futura**: Remover o cache do npm, apagar o `node_modules` local e instalar o `.exe` diretamente, ou focar em abrir o sistema via Browser em "Modo Tela Cheia" (PWA) para não perdermos tempo com o Electron enquanto a infraestrutura principal não funciona.
+1. **A Instalação do App Desktop (Falha do Electron)** — 🟢 **RESOLVIDO NO CÓDIGO**
+   - **O que aconteceu**: O comando `npm run desktop` falhou anteriormente por causa de bugs internos do Electron (carregamento de favicon no Tray que causava quebra e falta do módulo na seção dependências do packager).
+   - **O que foi corrigido**: Atualizado o `electron-main.cjs` para evitar quebras por imagens inválidas, adicionado o Electron de forma limpa nas dependências de desenvolvimento do projeto, e instaladas todas as dependências nativas com sucesso.
 
 2. **O Home Assistant Inacessível (`http://192.168.15.8:8123`)**
    - **O que aconteceu**: O navegador avisa que o site "demora a responder" ou recusa conexão ("This site can't be reached").

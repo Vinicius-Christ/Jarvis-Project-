@@ -89,6 +89,11 @@ export default function DeviceConfig({ devices, onRefresh, currentTheme, onChang
   // Local states for device additions
   const [activePersona, setActivePersona] = useState<string>("jarvis");
 
+  const [haIp, setHaIp] = useState("119.168.15.8");
+  const [haToken, setHaToken] = useState("");
+  const [haWsStatus, setHaWsStatus] = useState("disconnected");
+  const [savingHA, setSavingHA] = useState(false);
+
   useEffect(() => {
     fetch("/api/ai/persona")
       .then(r => r.json())
@@ -98,6 +103,23 @@ export default function DeviceConfig({ devices, onRefresh, currentTheme, onChang
         }
       })
       .catch(() => {});
+
+    const fetchHAConfig = () => {
+      fetch("/api/db")
+        .then(r => r.json())
+        .then(data => {
+          if (data.homeAssistant) {
+            setHaIp(data.homeAssistant.ip || "192.168.15.8");
+            setHaToken(data.homeAssistant.token || "");
+            setHaWsStatus(data.homeAssistant.wsStatus || "disconnected");
+          }
+        })
+        .catch(() => {});
+    };
+
+    fetchHAConfig();
+    const interval = setInterval(fetchHAConfig, 3000);
+    return () => clearInterval(interval);
   }, []);
 
   const [name, setName] = useState("");
@@ -214,6 +236,27 @@ export default function DeviceConfig({ devices, onRefresh, currentTheme, onChang
       onRefresh();
     } catch (err) {
       console.error(err);
+    }
+  };
+
+  const handleSaveHAConfig = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSavingHA(true);
+    try {
+      const res = await fetch("/api/homeassistant/config", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ip: haIp, token: haToken })
+      });
+      if (res.ok) {
+        setSuccessMsg("Ponte de comunicação Home Assistant WebSocket estabelecida!");
+        onRefresh();
+        setTimeout(() => setSuccessMsg(null), 4000);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setSavingHA(false);
     }
   };
 
@@ -339,8 +382,86 @@ export default function DeviceConfig({ devices, onRefresh, currentTheme, onChang
         <div className="space-y-6">
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
 
-        {/* Column 1: Local Ollama Configuration & Verification Tutorials */}
-        <div className="bg-zinc-900/50 border border-zinc-850 p-5 rounded-2xl space-y-5">
+        {/* Column 1: Home Assistant Live & Local Ollama */}
+        <div className="space-y-6">
+
+          {/* Home Assistant WebSocket Config Card */}
+          <div className="bg-zinc-900/50 border border-zinc-850 p-5 rounded-2xl space-y-4">
+            <div className="flex items-center justify-between border-b border-zinc-805 pb-3">
+              <h3 className="text-sm font-sans font-semibold text-[var(--brand-light,rgb(6,182,212))] uppercase tracking-wider flex items-center gap-2">
+                <Wifi className="h-4 w-4 text-[var(--brand-light,rgb(6,182,212))]" />
+                Domótica: HA Live WebSocket
+              </h3>
+              
+              <span className={`text-[9px] px-2 py-0.5 rounded font-mono uppercase font-bold flex items-center gap-1 border shadow-inner ${
+                haWsStatus === "connected"
+                  ? "bg-emerald-950/70 text-emerald-400 border-emerald-900/40"
+                  : haWsStatus === "connecting" || haWsStatus === "authenticating"
+                    ? "bg-amber-950/70 text-amber-400 border-amber-900/40 animate-pulse"
+                    : "bg-red-950/70 text-red-400 border-red-900/40"
+              }`}>
+                <span className={`h-1.5 w-1.5 rounded-full ${
+                  haWsStatus === "connected"
+                    ? "bg-emerald-400 shadow-[0_0_8px_#34d399]"
+                    : haWsStatus === "connecting" || haWsStatus === "authenticating"
+                      ? "bg-amber-400"
+                      : "bg-red-500"
+                }`}></span>
+                {haWsStatus === "connected" ? "CONECTADO LIVE" : haWsStatus === "connecting" ? "CONECTANDO..." : haWsStatus === "authenticating" ? "AUTENTICANDO" : "DESCONECTADO"}
+              </span>
+            </div>
+
+            <p className="text-[11px] text-zinc-400 leading-relaxed">
+              Consuma dados reais de sensores de temperatura, iluminação e interruptores da sua residência (IP: <code className="text-[var(--brand-light)] font-mono">{haIp}</code>) conectando-se diretamente ao barramento de eventos do Home Assistant.
+            </p>
+
+            <form onSubmit={handleSaveHAConfig} className="space-y-3 font-mono text-xs p-3.5 bg-black/40 border border-zinc-850 rounded-xl">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="text-zinc-500 block text-[9px] uppercase mb-1">Servidor IP / Local Host</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="Ex: 192.168.15.8"
+                    value={haIp}
+                    onChange={(e) => setHaIp(e.target.value)}
+                    className="w-full bg-zinc-950 border border-zinc-850 text-zinc-300 font-mono text-xs px-2 py-1.5 rounded focus:outline-none focus:border-[var(--brand-primary)]"
+                  />
+                </div>
+                <div>
+                  <label className="text-zinc-500 block text-[9px] uppercase mb-1">Status de Conectividade</label>
+                  <div className="bg-zinc-950/80 border border-zinc-850 text-zinc-400 font-mono text-xs p-1.5 rounded flex items-center gap-1.5 h-[32px] select-none">
+                    <span className={`h-2 w-2 rounded-full shrink-0 ${haWsStatus === "connected" ? "bg-emerald-400 animate-ping" : haWsStatus === "connecting" || haWsStatus === "authenticating" ? "bg-amber-400 animate-pulse" : "bg-red-400"}`}></span>
+                    <span className="text-[10px] uppercase font-bold tracking-widest">{haWsStatus}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <label className="text-zinc-500 block text-[9px] uppercase mb-1">Token de Acesso de Longa Duração (Long-Lived Token)</label>
+                <input
+                  type="password"
+                  required
+                  placeholder="Seu token dente das configurações de perfil do Home Assistant"
+                  value={haToken}
+                  onChange={(e) => setHaToken(e.target.value)}
+                  className="w-full bg-zinc-950 border border-zinc-850 text-zinc-300 font-mono text-xs px-2 py-1.5 rounded focus:outline-none focus:border-[var(--brand-primary)]"
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={savingHA}
+                className="w-full py-1.5 bg-zinc-900 border border-zinc-800 hover:border-zinc-700 text-[var(--brand-light)] hover:text-white font-mono font-bold tracking-wider rounded uppercase hover:bg-zinc-850 transition flex items-center justify-center gap-1.5 cursor-pointer text-[10px] disabled:opacity-50"
+              >
+                <Wifi className="h-3.5 w-3.5" />
+                {savingHA ? "REINICIANDO AMBIENTE SOCKET..." : "SALVAR E CONECTAR VIA WEBSOCKET"}
+              </button>
+            </form>
+          </div>
+
+          {/* Column 1 Card 2: Local Ollama Configuration & Verification Tutorials */}
+          <div className="bg-zinc-900/50 border border-zinc-850 p-5 rounded-2xl space-y-5">
           <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
             <h3 className="text-sm font-sans font-semibold text-[var(--brand-light)] uppercase tracking-wider flex items-center gap-2">
               <Cpu className="h-4 w-4 text-[var(--brand-light)]" />
@@ -448,6 +569,7 @@ export default function DeviceConfig({ devices, onRefresh, currentTheme, onChang
             </div>
           </div>
         </div>
+      </div>
 
         {/* Column 2: Devices Integration Form & Mapped Devices Status */}
         <div className="space-y-6">

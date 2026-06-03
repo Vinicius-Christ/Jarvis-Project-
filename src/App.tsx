@@ -55,6 +55,7 @@ import ChromaInspector from "./components/ChromaInspector";
 import CUDATelemetryHUD from "./components/CUDATelemetryHUD";
 import SSHDiagnostics from "./components/SSHDiagnostics";
 import MCPSettings from "./components/MCPSettings";
+import TokensManager from "./components/TokensManager";
 
 const HOLO_THEMES = {
   cyan: {
@@ -113,25 +114,12 @@ export default function App() {
     | "chromadb"
     | "cudautil"
     | "mcp"
+    | "tokens"
   >("general");
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const [isDarkMode, setIsDarkMode] = useState(() => {
-    try {
-      const saved = localStorage.getItem("jarvis_light_mode");
-      return saved === "true" ? false : true;
-    } catch {
-      return true;
-    }
-  });
-
+  const isDarkMode = true;
   const toggleDarkMode = () => {
-    setIsDarkMode((prev) => {
-      const next = !prev;
-      try {
-        localStorage.setItem("jarvis_light_mode", String(!next));
-      } catch {}
-      return next;
-    });
+    // Light mode disabled
   };
   const [systemState, setSystemState] = useState<any>(null);
   const [hardwareStats, setHardwareStats] = useState<any>(null);
@@ -829,19 +817,6 @@ export default function App() {
           <div className="flex items-center gap-6 self-end md:self-auto">
             {/* System Shortcuts */}
             <div className="flex items-center gap-2">
-              <button
-                onClick={toggleDarkMode}
-                className={`w-8 h-8 rounded-full border flex items-center justify-center hover:bg-[var(--brand-glow)] hover:border-[var(--brand-border)] hover:text-[var(--brand-light)] transition-all group cursor-pointer ${
-                  isDarkMode ? "border-zinc-800 bg-zinc-900" : "border-zinc-250 bg-white shadow-sm"
-                }`}
-                title={isDarkMode ? "Ativar Modo Claro" : "Ativar Modo Escuro"}
-              >
-                {isDarkMode ? (
-                  <Sun className="w-3.5 h-3.5 text-amber-400 hover:scale-110 transition-transform" />
-                ) : (
-                  <Moon className="w-3.5 h-3.5 text-cyan-650 hover:scale-110 transition-transform" />
-                )}
-              </button>
               <a
                 href="http://localhost:5678"
                 target="_blank"
@@ -2101,6 +2076,16 @@ export default function App() {
                   >
                     📊 Telemetria CUDA HUD
                   </button>
+                  <button
+                    onClick={() => setSettingsTab("tokens")}
+                    className={`px-4 py-2 border-b-2 font-bold tracking-wider transition-all cursor-pointer whitespace-nowrap ${
+                      settingsTab === "tokens"
+                        ? "border-amber-500 text-amber-400 bg-amber-500/10"
+                        : "border-transparent text-zinc-500 hover:text-zinc-300"
+                    }`}
+                  >
+                    🔐 Senhas & Tokens .ENV
+                  </button>
                 </div>
 
                 {(settingsTab === "general" ||
@@ -2228,6 +2213,8 @@ export default function App() {
                 {settingsTab === "mcp" && <MCPSettings />}
 
                 {settingsTab === "cudautil" && <CUDATelemetryHUD />}
+
+                {settingsTab === "tokens" && <TokensManager />}
               </div>
             )}
 

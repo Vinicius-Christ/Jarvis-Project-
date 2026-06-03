@@ -1,16 +1,45 @@
-import React, { useState } from "react";
-import { Server, Folder, Github, Database, Play, CheckCircle } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { Server, Folder, Github, Database, Play, CheckCircle, Info, Radio, Terminal } from "lucide-react";
 
 export default function MCPSettings() {
   const [servers, setServers] = useState([
-    { id: "fs", name: "Sistema de Arquivos Local", desc: "Permite que a IA leia arquivos .txt, pdfs ou projetos do seu disco local de forma padronizada.", active: true },
+    { id: "fs", name: "Sistema de Arquivos Local", desc: "Permite que a IA leia arquivos .md, .txt, pdfs ou projetos do seu disco local de forma padronizada.", active: true },
     { id: "github", name: "Integração GitHub Host", desc: "Permite que a IA liste seus repositórios, abra PRs e revise código usando suas credenciais locais.", active: false },
     { id: "db", name: "Acesso PostgreSQL Nativo", desc: "Fornece metadados do schema e permite que a IA crie queries seguras atreladas ao banco em execução no Docker.", active: false },
   ]);
 
-  const toggleServer = (id: string) => {
+  useEffect(() => {
+    fetch("/api/db")
+      .then(r => r.json())
+      .then(data => {
+        if (data.mcpServers && Array.isArray(data.mcpServers)) {
+          setServers(data.mcpServers);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const toggleServer = async (id: string) => {
     setServers(prev => prev.map(s => s.id === id ? { ...s, active: !s.active } : s));
+    try {
+      const res = await fetch("/api/mcp/toggle", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.mcpServers) {
+          setServers(data.mcpServers);
+        }
+      }
+    } catch (e) {
+      console.error("Failed to toggle MCP server", e);
+    }
   };
+
+  const activeFS = servers.find(s => s.id === "fs" && s.active);
+  const activeDB = servers.find(s => s.id === "db" && s.active);
 
   return (
     <div className="bg-[#030712]/90 border border-zinc-900 rounded-2xl p-5 md:p-8 space-y-6">
@@ -57,6 +86,59 @@ export default function MCPSettings() {
              )}
            </div>
         ))}
+      </div>
+
+      {/* Telemetry MCP Hub Console */}
+      <div className="bg-black/40 border border-zinc-900 rounded-xl p-5 font-mono text-xs space-y-4">
+        <div className="flex items-center justify-between border-b border-zinc-900 pb-2">
+          <span className="text-[10px] uppercase font-bold text-zinc-500 flex items-center gap-1.5">
+            <Terminal className="h-3.5 w-3.5 text-[var(--brand-light,rgb(6,182,212))]" />
+            Console de Telemetria do Protocolo MCP Local
+          </span>
+          <span className="text-[9px] text-zinc-500 uppercase">Status: Canal de Escuta Ativo</span>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <span className="text-zinc-500 text-[10px] block">ENDPOINT RPC / SCHEMA DE CONTEXTO</span>
+            <div className="bg-zinc-950 p-3 rounded border border-zinc-900/60 flex items-center justify-between">
+              <span className="text-[var(--brand-light,rgb(6,182,212))] font-bold">POST /api/mcp</span>
+              <span className="text-[9px] px-1.5 py-0.5 rounded bg-zinc-900 border border-zinc-805 text-zinc-400">JSON-RPC 2.0</span>
+            </div>
+            <p className="text-[10px] text-zinc-500 leading-normal">
+              Seu Llama 3.1 local consulta dinamicamente esta rota para solicitar execuções de ferramentas no host doméstico.
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <span className="text-zinc-500 text-[10px] block">FERRAMENTAS DECLARADAS PELOS DRIVERS</span>
+            <div className="space-y-1.5">
+              {activeFS ? (
+                <div className="bg-zinc-950 p-2 rounded border border-zinc-900/50 flex items-center justify-between text-[11px]">
+                  <span className="text-emerald-400 font-bold">fs::search_notes, read_note, write_note</span>
+                  <span className="text-[9px] px-1 bg-emerald-950 text-emerald-400 rounded">PRONTO</span>
+                </div>
+              ) : (
+                <div className="bg-zinc-950 p-2 rounded border border-zinc-900/50 flex items-center justify-between text-[11px] text-zinc-600 opacity-45">
+                  <span>fs::search_notes, read_note, write_note</span>
+                  <span className="text-[9px] px-1 bg-zinc-900 rounded text-zinc-500">DESATIVADO</span>
+                </div>
+              )}
+
+              {activeDB ? (
+                <div className="bg-zinc-950 p-2 rounded border border-zinc-900/50 flex items-center justify-between text-[11px]">
+                  <span className="text-emerald-400 font-bold">db::get_finances</span>
+                  <span className="text-[9px] px-1 bg-emerald-950 text-emerald-400 rounded">PRONTO</span>
+                </div>
+              ) : (
+                <div className="bg-zinc-950 p-2 rounded border border-zinc-900/50 flex items-center justify-between text-[11px] text-zinc-600 opacity-45">
+                  <span>db::get_finances</span>
+                  <span className="text-[9px] px-1 bg-zinc-900 rounded text-zinc-500">DESATIVADO</span>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
       </div>
 
     </div>

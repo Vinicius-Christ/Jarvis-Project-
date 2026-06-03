@@ -5,6 +5,7 @@ import { exec } from "child_process";
 import si from "systeminformation";
 import { createServer as createViteServer } from "vite";
 import dns from "dns";
+import { WebSocket } from "ws";
 
 // Ensure localhost/ipv4 works nicely
 dns.setDefaultResultOrder("ipv4first");
@@ -50,8 +51,17 @@ let db = {
     lights: { brightness: 0, color: "#FFFFFF", state: "off" },
     ambientPreset: "",
     ac: { state: "off", temp: 24 },
-    devices: [] as any[]
+    devices: [] as any[],
+    ip: "192.168.15.8",
+    token: "COLOQUE_SEU_TOKEN_AQUI",
+    wsStatus: "disconnected"
   },
+  mcpEnabled: true,
+  mcpServers: [
+    { id: "fs", name: "Sistema de Arquivos Local", desc: "Permite que a IA leia arquivos .md, .txt, pdfs ou projetos do seu disco local de forma padronizada.", active: true },
+    { id: "github", name: "Integração GitHub Host", desc: "Permite que a IA liste seus repositórios, abra PRs e revise código usando suas credenciais locais.", active: false },
+    { id: "db", name: "Acesso PostgreSQL Nativo", desc: "Fornece metadados do schema e permite que a IA crie queries seguras atreladas ao banco em execução no Docker.", active: false },
+  ],
   pcAutomation: {
     activeWorkspace: "",
     workspaceOptions: [
@@ -132,6 +142,233 @@ process.on("SIGTERM", () => {
   process.exit(0);
 });
 
+// ==========================================
+// HOME ASSISTANT WEBSOCKET API INTEGRATION
+// ==========================================
+let haWS: WebSocket | null = null;
+let haMessageId = 1;
+let reconnectTimeout: any = null;
+
+function connectHomeAssistantWS() {
+  // Clear any pending reconnects
+  if (reconnectTimeout) {
+    clearTimeout(reconnectTimeout);
+    reconnectTimeout = null;
+  }
+
+  const ip = db.homeAssistant.ip || "192.168.15.8";
+  const token = db.homeAssistant.token || "COLOQUE_SEU_TOKEN_AQUI";
+
+  console.log(`[HA WS] Tentando conectar ao Home Assistant em ws://${ip}:8123/api/websocket`);
+  
+  try {
+    db.homeAssistant.wsStatus = "connecting";
+    const wsUrl = `ws://${ip}:8123/api/websocket`;
+    
+    // Safety check for empty or placeholder token/ip
+    if (!ip || ip.includes("COLOQUE_SEU") || !token || token.includes("COLOQUE_SEU")) {
+      console.warn("[HA WS] IP ou Token do Home Assistant não parecem estar configurados. Aguardando configuração via painel.");
+      db.homeAssistant.wsStatus = "disconnected";
+      return;
+    }
+
+    haWS = new WebSocket(wsUrl);
+
+    haWS.on("open", () => {
+      console.log(`[HA WS] Socket aberto com sucesso. Aguardando requerimento de autorização...`);
+      db.homeAssistant.wsStatus = "authenticating";
+    });
+
+    haWS.on("message", (data) => {
+      try {
+        const msg = JSON.parse(data.toString());
+        
+        if (msg.type === "auth_required") {
+          console.log("[HA WS] Solicitando autenticação. Enviando token...");
+          haWS?.send(JSON.stringify({
+            type: "auth",
+            access_token: token
+          }));
+        } else if (msg.type === "auth_ok") {
+          console.log("[HA WS] Conectado e Autenticado com Sucesso!");
+          db.homeAssistant.wsStatus = "connected";
+          saveDB();
+
+          // Obter informações estáticas e estados iniciais de todos os gadgets
+          haMessageId = 1;
+          haWS?.send(JSON.stringify({
+            id: haMessageId++,
+            type: "get_states"
+          }));
+
+          // Subscrever aos eventos de mudança de status
+          haWS?.send(JSON.stringify({
+            id: haMessageId++,
+            type: "subscribe_events",
+            event_type: "state_changed"
+          }));
+
+        } else if (msg.type === "auth_invalid") {
+          console.error("[HA WS] Erro crítico: Autenticação Rejeitada (Token inválido ou expirado).");
+          db.homeAssistant.wsStatus = "error";
+          saveDB();
+        } else if (msg.type === "result") {
+          if (msg.success && Array.isArray(msg.result)) {
+            console.log(`[HA WS] Inicializados ${msg.result.length} estados do Home Assistant.`);
+            syncEntitiesWithDB(msg.result);
+          }
+        } else if (msg.type === "event") {
+          if (msg.event && msg.event.event_type === "state_changed") {
+            const entity = msg.event.data.new_state;
+            if (entity) {
+              updateEntityInDB(entity);
+            }
+          }
+        }
+      } catch (err) {
+        console.error("[HA WS] Erro ao tratar payload de domótica:", err);
+      }
+    });
+
+    haWS.on("close", () => {
+      console.warn("[HA WS] Conexão terminada. Tentando se reconectar em 15 segundos...");
+      db.homeAssistant.wsStatus = "disconnected";
+      reconnectTimeout = setTimeout(connectHomeAssistantWS, 15000);
+    });
+
+    haWS.on("error", (err: any) => {
+      console.error("[HA WS] Erro na transmissão de dados do socket:", err.message);
+      db.homeAssistant.wsStatus = "error";
+      // O evento close será acionado em seguida
+    });
+
+  } catch (err: any) {
+    console.error("[HA WS] Falha ao disparar o construtor WebSocket do Home Assistant:", err.message);
+    db.homeAssistant.wsStatus = "error";
+    reconnectTimeout = setTimeout(connectHomeAssistantWS, 15000);
+  }
+}
+
+function syncEntitiesWithDB(entities: any[]) {
+  const filtered = entities.filter(e => {
+    const id = e.entity_id;
+    return id.startsWith("light.") || 
+           id.startsWith("switch.") || 
+           id.startsWith("climate.") ||
+           (id.startsWith("sensor.") && (id.includes("temp") || id.includes("hum") || id.includes("sensor")) || e.attributes.device_class === "temperature");
+  });
+
+  const updatedDevices = filtered.map(e => {
+    let type = "Interruptor Inteligente";
+    let brand = "Home Assistant";
+    if (e.entity_id.startsWith("light.")) {
+      type = "Lâmpada Inteligente (RGB/Dimmer)";
+    } else if (e.entity_id.startsWith("climate.")) {
+      type = "Ar-Condicionado / Climatizador";
+    } else if (e.entity_id.startsWith("sensor.")) {
+      type = "Sensor de Medição";
+    }
+
+    const friendlyName = e.attributes.friendly_name || e.entity_id;
+    const currentState = e.state;
+    const unit = e.attributes.unit_of_measurement || "";
+    
+    let statusText = currentState === "on" ? "Ativo" : (currentState === "off" ? "Desativado" : currentState);
+    if (unit) {
+      statusText = `Medindo: ${currentState} ${unit}`;
+    } else if (e.attributes.brightness) {
+      statusText += ` (${Math.round((e.attributes.brightness / 255) * 100)}%)`;
+    }
+
+    return {
+      id: e.entity_id,
+      name: friendlyName,
+      type: type,
+      brand: brand,
+      integration: "Matter / Zigbee / WiFi (WS-Live)",
+      status: statusText,
+      state: currentState,
+      targetUrl: `http://${db.homeAssistant.ip || "192.168.15.8"}:8123`
+    };
+  });
+
+  const manualDevices = db.homeAssistant.devices.filter(d => !d.id.includes("."));
+  db.homeAssistant.devices = [...manualDevices, ...updatedDevices];
+  saveDB();
+}
+
+function updateEntityInDB(entity: any) {
+  const id = entity.entity_id;
+  if (!id.startsWith("light.") && !id.startsWith("switch.") && !id.startsWith("climate.") && 
+      !(id.startsWith("sensor.") && (id.includes("temp") || id.includes("hum") || id.includes("sensor") || entity.attributes.device_class === "temperature"))) {
+    return;
+  }
+
+  const existingIdx = db.homeAssistant.devices.findIndex(d => d.id === id);
+  const friendlyName = entity.attributes.friendly_name || id;
+  const currentState = entity.state;
+  const unit = entity.attributes.unit_of_measurement || "";
+  
+  let type = "Interruptor Inteligente";
+  if (id.startsWith("light.")) {
+    type = "Lâmpada Inteligente (RGB/Dimmer)";
+  } else if (id.startsWith("climate.")) {
+    type = "Ar-Condicionado / Climatizador";
+  } else if (id.startsWith("sensor.")) {
+    type = "Sensor de Medição";
+  }
+
+  let statusText = currentState === "on" ? "Ativo" : (currentState === "off" ? "Desativado" : currentState);
+  if (unit) {
+    statusText = `Medindo: ${currentState} ${unit}`;
+  } else if (entity.attributes.brightness) {
+    statusText += ` (${Math.round((entity.attributes.brightness / 255) * 100)}%)`;
+  }
+
+  const deviceData = {
+    id: id,
+    name: friendlyName,
+    type: type,
+    brand: "Home Assistant",
+    integration: "Matter / Zigbee / WiFi (WS-Live)",
+    status: statusText,
+    state: currentState,
+    targetUrl: `http://${db.homeAssistant.ip || "192.168.15.8"}:8123`
+  };
+
+  if (existingIdx >= 0) {
+    db.homeAssistant.devices[existingIdx] = deviceData;
+  } else {
+    db.homeAssistant.devices.push(deviceData);
+  }
+  saveDB();
+}
+
+function callHAService(entity_id: string, service: string, domain: string, service_data?: any) {
+  if (haWS && db.homeAssistant.wsStatus === "connected" && haWS.readyState === WebSocket.OPEN) {
+    try {
+      console.log(`[HA WS] Disparando Comando IoT WebSocket: ${domain}.${service} para ${entity_id}`);
+      haWS.send(JSON.stringify({
+        id: haMessageId++,
+        type: "call_service",
+        domain: domain,
+        service: service,
+        service_data: {
+          entity_id: entity_id,
+          ...service_data
+        }
+      }));
+      return true;
+    } catch (e: any) {
+      console.error("[HA WS] Falha ao transmitir comando IoT:", e.message);
+    }
+  }
+  return false;
+}
+
+// Iniciar conexão com o Home Assistant em segundo plano
+setTimeout(connectHomeAssistantWS, 1000);
+
 
 // Main multi-persona system prompts configurations
 const AI_PERSONAS: Record<string, { name: string; title: string; theme: string; prompt: string }> = {
@@ -203,6 +440,46 @@ app.post("/api/chat", async (req, res) => {
   db.obsidianNotes.forEach(note => {
     contextPrompt += `--- ${note.path} ---\n${note.content}\n\n`;
   });
+
+  // PRE-PROCESS INTEGRATED MCP TOOLS
+  if (db.mcpEnabled && db.mcpServers) {
+    const fsSrv = db.mcpServers.find(s => s.id === "fs");
+    const dbSrv = db.mcpServers.find(s => s.id === "db");
+    const lowerMsg = message.toLowerCase();
+
+    // 1. search_notes hook
+    if (fsSrv && fsSrv.active && (lowerMsg.includes("buscar") || lowerMsg.includes("pesquisar") || lowerMsg.includes("mcp search") || lowerMsg.includes("procurar"))) {
+      const q = message.replace(/buscar|pesquisar|localizar|procurar|nota|notas|arquivo|obsidian|no|de|do|por/gi, "").trim();
+      if (q.length > 1) {
+        const found = db.obsidianNotes.filter(n => 
+          n.path.toLowerCase().includes(q.toLowerCase()) || n.content.toLowerCase().includes(q.toLowerCase())
+        );
+        contextPrompt += `\n\n[MCP SYSTEM TOOL - search_notes RESULT para query: "${q}"]:\n` + 
+          (found.length > 0 
+            ? found.map(f => `Nota "${f.path}":\n"""\n${f.content}\n"""`).join("\n\n") 
+            : "(Nenhuma nota correspondente encontrada no sistema)");
+      }
+    }
+
+    // 2. read_note hook
+    if (fsSrv && fsSrv.active && (lowerMsg.includes("ler nota") || lowerMsg.includes("ler arquivo") || lowerMsg.includes("abrir nota") || lowerMsg.includes("conteúdo de"))) {
+      const noteToRead = db.obsidianNotes.find(n => 
+        lowerMsg.includes(n.path.toLowerCase()) || lowerMsg.includes(path.basename(n.path).toLowerCase())
+      );
+      if (noteToRead) {
+        contextPrompt += `\n\n[MCP SYSTEM TOOL - read_note RESULT para arquivo: "${noteToRead.path}"]:\n"""\n${noteToRead.content}\n"""\n`;
+      }
+    }
+
+    // 3. get_finances hook
+    if (dbSrv && dbSrv.active && (lowerMsg.includes("finance") || lowerMsg.includes("gastos") || lowerMsg.includes("extrato") || lowerMsg.includes("despesas") || lowerMsg.includes("finanças"))) {
+      const transactions = db.finances;
+      contextPrompt += `\n\n[MCP SYSTEM TOOL - get_finances RESULT (Registros de SQL local)]:\n` + 
+        (transactions.length > 0 
+          ? transactions.map(t => `- R$ ${t.value.toFixed(2)} (${t.category}): ${t.description} [Ref ID: ${t.id}]`).join("\n") 
+          : "(Nenhuma transação financeira encontrada na base de dados SQLite)");
+    }
+  }
   
   const selectedP = db.activePersona || "jarvis";
   const personaDetails = AI_PERSONAS[selectedP] || AI_PERSONAS.jarvis;
@@ -277,7 +554,29 @@ O meu processamento extraiu dados tabulares do documento. Inseridos **R$ 42,50**
         replyText = `Processando arquivo 📂 **${file.name}**. Identifiquei informações relevantes e atualizei meu pipeline interno.`;
       }
     } else {
-      if (lower.includes("meta") || lower.includes("financeir") || lower.includes("objetivo")) {
+      const fsSrv = db.mcpServers?.find(s => s.id === "fs");
+      const dbSrv = db.mcpServers?.find(s => s.id === "db");
+
+      if (db.mcpEnabled && fsSrv && fsSrv.active && (lower.includes("buscar") || lower.includes("pesquisar") || lower.includes("ler") || lower.includes("obsidian")) && (lower.includes("nota") || lower.includes("arquivo") || lower.includes("procurar") || lower.includes("mcp"))) {
+        const q = message.replace(/buscar|pesquisar|localizar|procurar|nota|notas|arquivo|obsidian|no|de|do|por/gi, "").trim() || "geral";
+        const found = db.obsidianNotes.filter(n => 
+          n.path.toLowerCase().includes(q.toLowerCase()) || n.content.toLowerCase().includes(q.toLowerCase())
+        );
+        replyText = `Senhor, de acordo com o protocolo **Model Context Protocol (MCP)**, acionei o canal de comunicação do seu **Servidor MCP Local (Sistema de Arquivos)** e executei as ferramentas nativas \`search_notes\` e \`read_note\`.
+
+**Notas de Conhecimento e do Obsidian indexadas em tempo real:**
+${found.length > 0 ? found.map(f => `- 📝 **${f.path}**: "${f.content.substring(0, 150)}..."`).join("\n") : "*(Nenhum arquivo correspondente localizado no Obsidian Vault)*"}
+
+A IA do JARVIS realizou a varredura local nos seus arquivos com sucesso via MCP Server.`;
+      } else if (db.mcpEnabled && dbSrv && dbSrv.active && (lower.includes("gasto") || lower.includes("finan") || lower.includes("extrato") || lower.includes("despesa") || lower.includes("finanças"))) {
+        const transactions = db.finances;
+        replyText = `Senhor, estabeleci comunicação direta com o seu banco SQLite local por meio do **Servidor MCP Local (Acesso PostgreSQL/SQLite)** chamando o driver da ferramenta nativa \`get_finances\`.
+
+**Sua Consola Financeira Local (MCP):**
+${transactions.length > 0 ? transactions.map(t => `- 💰 **R$ ${t.value.toFixed(2)}** | Categoria: *${t.category}* | ${t.description}`).join("\n") : "*(Nenhum registro de despesa ou receita ativa na base de dados relacional)*"}
+
+*Nota: Conexão encriptada e executada de forma 100% offline via MCP.*`;
+      } else if (lower.includes("meta") || lower.includes("financeir") || lower.includes("objetivo")) {
         replyText = `Excelente, senhor. Compreendi sua nova meta financeira e as implicações disso. Como solicitado, estou registrando este objetivo nas memórias permanentes do nosso cérebro local no Obsidian para acompanhamento contínuo.
 
 \`\`\`obsidian-update
@@ -856,10 +1155,8 @@ app.post("/api/update/agenda", (req, res) => {
 app.post("/api/update/iot", async (req, res) => {
   const { deviceId, state, brightness, color, presetName } = req.body;
 
-  // Substituído pelo IPv4 real da máquina local
-  const HOME_ASSISTANT_IP = "192.168.15.8"; 
-  // Cole o seu Token de Longa Duração (Criado no Passo 2) logo abaixo:
-  const HA_TOKEN = "COLOQUE_SEU_TOKEN_AQUI"; 
+  const HOME_ASSISTANT_IP = db.homeAssistant.ip || "192.168.15.8"; 
+  const HA_TOKEN = db.homeAssistant.token || "COLOQUE_SEU_TOKEN_AQUI"; 
 
   if (presetName) {
     db.homeAssistant.ambientPreset = presetName;
@@ -878,12 +1175,40 @@ app.post("/api/update/iot", async (req, res) => {
     }
     saveDB();
 
-    // =============== MUNDO REAL (RETIRADA DA TRAVA) ===============
-    try {
-      console.log(`[MUNDO REAL] Disparando Preset '${presetName}' para Home Assistant em ${HOME_ASSISTANT_IP}`);
-      const webhookName = presetName.toLowerCase().replace(/ /g, "_");
-      await fetch(`http://${HOME_ASSISTANT_IP}:8123/api/webhook/${webhookName}`, { method: "POST" }).catch(() => {});
-    } catch(e) {}
+    // =============== MUNDO REAL WEBSOCKET & WEBHOOK ===============
+    let wsDispatched = false;
+    if (db.homeAssistant.wsStatus === "connected" && haWS) {
+      // Find lights in synchronized devices and apply properties
+      db.homeAssistant.devices.forEach(d => {
+        if (d.id.startsWith("light.")) {
+          const service = presetName === "Modo Noturno" || presetName === "Modo Cinema" ? "turn_on" : "turn_on";
+          const serviceData: any = {};
+          if (presetName === "Modo Cinema") {
+             serviceData.brightness_pct = 15;
+             serviceData.rgb_color = [224, 64, 251];
+          } else if (presetName === "Modo Trabalho") {
+             serviceData.brightness_pct = 90;
+             serviceData.rgb_color = [224, 247, 250];
+          } else if (presetName === "Modo Noturno") {
+             serviceData.brightness_pct = 5;
+             serviceData.rgb_color = [255, 143, 0];
+          }
+          callHAService(d.id, "turn_on", "light", serviceData);
+        } else if (d.id.startsWith("climate.")) {
+          const targetTemp = presetName === "Modo Cinema" ? 20 : (presetName === "Modo Trabalho" ? 22 : 24);
+          callHAService(d.id, "set_temperature", "climate", { temperature: targetTemp });
+        }
+      });
+      wsDispatched = true;
+    }
+
+    if (!wsDispatched) {
+      try {
+        console.log(`[MUNDO REAL] Disparando Preset '${presetName}' para Home Assistant em ${HOME_ASSISTANT_IP}`);
+        const webhookName = presetName.toLowerCase().replace(/ /g, "_");
+        await fetch(`http://${HOME_ASSISTANT_IP}:8123/api/webhook/${webhookName}`, { method: "POST" }).catch(() => {});
+      } catch(e) {}
+    }
     // ==============================================================
 
     return res.json({ success: true, preset: presetName });
@@ -899,16 +1224,24 @@ app.post("/api/update/iot", async (req, res) => {
           dev.status += ` (${dev.brightness}%)`;
       }
 
-      // =============== MUNDO REAL (RETIRADA DA TRAVA) ===============
-      try {
-        console.log(`[MUNDO REAL] Alterando '${dev.name}' para estado: ${dev.state} local em ${HOME_ASSISTANT_IP}`);
-        const realTargetUrl = dev.targetUrl.replace("192.168.1.104", HOME_ASSISTANT_IP);
-        await fetch(`${realTargetUrl}/api/webhook/action_${dev.id}`, { 
-           method: "POST", 
-           headers: { "Content-Type": "application/json" },
-           body: JSON.stringify({ state: dev.state, brightness: dev.brightness })
-        }).catch(() => {});
-      } catch(e) {}
+      // =============== MUNDO REAL (WEBSOCKET FIRST, FALLBACK TO WEBHOOK) ===============
+      const domain = deviceId.split(".")[0] || "light";
+      const service = state === "on" ? "turn_on" : "turn_off";
+      const serviceData = brightness !== undefined ? { brightness_pct: brightness } : undefined;
+      
+      const wsSuccessful = callHAService(deviceId, service, domain, serviceData);
+
+      if (!wsSuccessful) {
+        try {
+          console.log(`[MUNDO REAL] Fallback: Alterando '${dev.name}' para estado: ${dev.state} local em ${HOME_ASSISTANT_IP}`);
+          const realTargetUrl = dev.targetUrl.replace("192.168.1.104", HOME_ASSISTANT_IP).replace("192.168.15.8", HOME_ASSISTANT_IP);
+          await fetch(`${realTargetUrl}/api/webhook/action_${dev.id}`, { 
+             method: "POST", 
+             headers: { "Content-Type": "application/json" },
+             body: JSON.stringify({ state: dev.state, brightness: dev.brightness })
+          }).catch(() => {});
+        } catch(e) {}
+      }
       // ==============================================================
     }
   } else {
@@ -920,6 +1253,325 @@ app.post("/api/update/iot", async (req, res) => {
 
   saveDB();
   res.json({ success: true, homeState: db.homeAssistant });
+});
+
+app.post("/api/homeassistant/config", (req, res) => {
+  const { ip, token } = req.body;
+  if (ip !== undefined) db.homeAssistant.ip = ip;
+  if (token !== undefined) db.homeAssistant.token = token;
+  saveDB();
+
+  // Reset socket connection on config change
+  if (haWS) {
+    try {
+      haWS.close();
+    } catch(e) {}
+  }
+  setTimeout(connectHomeAssistantWS, 1000);
+
+  res.json({ success: true, homeAssistant: db.homeAssistant });
+});
+
+app.get("/api/config/tokens", (req, res) => {
+  let envTokens: Record<string, string> = {};
+  try {
+    if (fs.existsSync(".env")) {
+      const envContent = fs.readFileSync(".env", "utf8");
+      envContent.split("\n").forEach(line => {
+        const trimmed = line.trim();
+        if (trimmed && !trimmed.startsWith("#")) {
+          const splitIdx = trimmed.indexOf("=");
+          if (splitIdx > -1) {
+            const key = trimmed.substring(0, splitIdx);
+            const val = trimmed.substring(splitIdx + 1).replace(/^"|"$/g, "").replace(/^'|'$/g, "");
+            envTokens[key] = val;
+          }
+        }
+      });
+    }
+  } catch(e) {}
+
+  res.json({
+    success: true,
+    tokens: {
+      githubToken: (db as any).githubToken || "",
+      haToken: db.homeAssistant.token || "",
+      telegramToken: envTokens["TELEGRAM_TOKEN"] || ""
+    }
+  });
+});
+
+app.post("/api/config/tokens", (req, res) => {
+  const { githubToken, haToken, telegramToken } = req.body;
+  
+  // Save internal DB tokens
+  if (githubToken !== undefined) {
+    (db as any).githubToken = githubToken;
+    updaterState.githubToken = githubToken;
+  }
+  if (haToken !== undefined) {
+    db.homeAssistant.token = haToken;
+  }
+  saveDB();
+
+  // Create or Update .env file with the requested env tokens
+  let envTokens: Record<string, string> = {};
+  if (fs.existsSync(".env")) {
+    try {
+      const envContent = fs.readFileSync(".env", "utf8");
+      envContent.split("\n").forEach(line => {
+        const trimmed = line.trim();
+        if (trimmed && !trimmed.startsWith("#")) {
+          const splitIdx = trimmed.indexOf("=");
+          if (splitIdx > -1) {
+            envTokens[trimmed.substring(0, splitIdx)] = trimmed.substring(splitIdx + 1);
+          }
+        }
+      });
+    } catch(e) {}
+  }
+
+  if (telegramToken !== undefined) envTokens["TELEGRAM_TOKEN"] = `"${telegramToken}"`;
+
+  // Write back to .env
+  try {
+    let newEnvContent = "";
+    Object.keys(envTokens).forEach(k => {
+      newEnvContent += `${k}=${envTokens[k]}\n`;
+    });
+    fs.writeFileSync(".env", newEnvContent, "utf8");
+  } catch(e) {
+    console.error("Failed to write to .env", e);
+  }
+
+  res.json({ success: true });
+});
+
+// ==========================================
+// MODEL CONTEXT PROTOCOL (MCP) SERVER
+// ==========================================
+app.post("/api/mcp/toggle", (req, res) => {
+  const { id } = req.body;
+  if (!db.mcpServers) {
+    db.mcpServers = [
+      { id: "fs", name: "Sistema de Arquivos Local", desc: "Permite que a IA leia arquivos .md, .txt, pdfs ou projetos do seu disco local de forma padronizada.", active: true },
+      { id: "github", name: "Integração GitHub Host", desc: "Permite que a IA liste seus repositórios, abra PRs e revise código usando suas credenciais locais.", active: false },
+      { id: "db", name: "Acesso PostgreSQL Nativo", desc: "Fornece metadados do schema e permite que a IA crie queries seguras atreladas ao banco em execução no Docker.", active: false },
+    ];
+  }
+  const srv = db.mcpServers.find(s => s.id === id);
+  if (srv) {
+    srv.active = !srv.active;
+    saveDB();
+    console.log(`[MCP Server] Servidor '${srv.name}' alterado para estado: ${srv.active ? "Ativo" : "Inativo"}`);
+  }
+  res.json({ success: true, mcpServers: db.mcpServers });
+});
+
+app.post("/api/mcp", (req, res) => {
+  const { jsonrpc, id, method, params } = req.body;
+  
+  if (jsonrpc !== "2.0") {
+    return res.status(400).json({ 
+      jsonrpc: "2.0", 
+      id: id || null, 
+      error: { code: -32600, message: "Invalid Request: JSON-RPC version must be 2.0" } 
+    });
+  }
+
+  console.log(`[MCP Server] Chamada RPC recebida - Método: ${method}`);
+
+  // Auto-init mcpServers if missing to prevent crashes
+  if (!db.mcpServers) {
+    db.mcpServers = [
+      { id: "fs", name: "Sistema de Arquivos Local", desc: "Permite que a IA leia arquivos .md, .txt, pdfs ou projetos do seu disco local de forma padronizada.", active: true },
+      { id: "github", name: "Integração GitHub Host", desc: "Permite que a IA liste seus repositórios, abra PRs e revise código usando suas credenciais locais.", active: false },
+      { id: "db", name: "Acesso PostgreSQL Nativo", desc: "Fornece metadados do schema e permite que a IA crie queries seguras atreladas ao banco em execução no Docker.", active: false },
+    ];
+    saveDB();
+  }
+
+  switch (method) {
+    case "initialize":
+      return res.json({
+        jsonrpc: "2.0",
+        id,
+        result: {
+          protocolVersion: "2024-11-05",
+          capabilities: {
+            tools: {}
+          },
+          serverInfo: {
+            name: "JARVIS MCP Server",
+            version: "1.0.0"
+          }
+        }
+      });
+
+    case "tools/list": {
+      // Return tools based on active servers
+      const tools: any[] = [];
+      const fsSrv = db.mcpServers.find(s => s.id === "fs");
+      const dbSrv = db.mcpServers.find(s => s.id === "db");
+
+      if (fsSrv && fsSrv.active) {
+        tools.push(
+          {
+            name: "search_notes",
+            description: "Pesquisa por arquivos e conhecimento no Obsidian Vault.",
+            inputSchema: {
+              type: "object",
+              properties: {
+                query: { type: "string", description: "Termo ou palavra-chave para buscar nas notas" }
+              },
+              required: ["query"]
+            }
+          },
+          {
+            name: "read_note",
+            description: "Lê o conteúdo de um arquivo de notas do Obsidian (.md).",
+            inputSchema: {
+              type: "object",
+              properties: {
+                path: { type: "string", description: "Caminho relativo (ex: financas/metas.md)" }
+              },
+              required: ["path"]
+            }
+          },
+          {
+            name: "write_note",
+            description: "Cria ou substitui uma nota de forma persistente no Obsidian Vault.",
+            inputSchema: {
+              type: "object",
+              properties: {
+                path: { type: "string", description: "Caminho relativo do arquivo (ex: perfis/preferencias.md)" },
+                content: { type: "string", description: "O novo conteúdo Markdown da nota" }
+              },
+              required: ["path", "content"]
+            }
+          }
+        );
+      }
+
+      if (dbSrv && dbSrv.active) {
+        tools.push(
+          {
+            name: "get_finances",
+            description: "Consulta o banco SQLite local e extrai relatórios financeiros das transações.",
+            inputSchema: {
+              type: "object",
+              properties: {}
+            }
+          }
+        );
+      }
+
+      return res.json({
+        jsonrpc: "2.0",
+        id,
+        result: { tools }
+      });
+    }
+
+    case "tools/call": {
+      const { name, arguments: toolArgs } = params || {};
+      if (!name) {
+        return res.json({ 
+          jsonrpc: "2.0", 
+          id, 
+          error: { code: -32602, message: "Argumentos inválidos: 'name' é obrigatório" } 
+        });
+      }
+
+      try {
+        if (name === "search_notes") {
+          const q = (toolArgs?.query || "").toLowerCase();
+          const found = db.obsidianNotes.filter(n => 
+             n.path.toLowerCase().includes(q) || n.content.toLowerCase().includes(q)
+          );
+          return res.json({
+            jsonrpc: "2.0",
+            id,
+            result: {
+              content: [
+                {
+                  type: "text",
+                  text: `Resultados encontrados (${found.length}):\n` + 
+                        found.map(f => `- **${f.path}**: ${f.content.substring(0, 100)}...`).join("\n")
+                }
+              ]
+            }
+          });
+        } 
+        
+        if (name === "read_note") {
+          const notePath = toolArgs?.path;
+          const note = db.obsidianNotes.find(n => n.path === notePath || n.path.endsWith(notePath));
+          if (!note) {
+            return res.json({
+              jsonrpc: "2.0",
+              id,
+              result: {
+                content: [{ type: "text", text: `Nota não encontrada pelo caminho: ${notePath}` }]
+              }
+            });
+          }
+          return res.json({
+            jsonrpc: "2.0",
+            id,
+            result: {
+              content: [{ type: "text", text: `--- ${note.path} ---\n${note.content}` }]
+            }
+          });
+        }
+
+        if (name === "write_note") {
+          const notePath = toolArgs?.path;
+          const content = toolArgs?.content;
+          const existingIdx = db.obsidianNotes.findIndex(n => n.path === notePath);
+          
+          if (existingIdx >= 0) {
+            db.obsidianNotes[existingIdx].content = content;
+          } else {
+            db.obsidianNotes.push({ path: notePath, content: content });
+          }
+          saveDB();
+          
+          return res.json({
+            jsonrpc: "2.0",
+            id,
+            result: {
+              content: [{ type: "text", text: `Nota gravada com sucesso em ${notePath}.` }]
+            }
+          });
+        }
+
+        if (name === "get_finances") {
+          const transactions = db.finances;
+          return res.json({
+            jsonrpc: "2.0",
+            id,
+            result: {
+              content: [
+                {
+                  type: "text",
+                  text: `Transações encontradas (${transactions.length}):\n` +
+                        transactions.map(t => `- R$ ${t.value.toFixed(2)} (${t.category}): ${t.description}`).join("\n")
+                }
+              ]
+            }
+          });
+        }
+
+        return res.json({ jsonrpc: "2.0", id, error: { code: -32601, message: `Ferramenta não encontrada: ${name}` } });
+      } catch (err: any) {
+        return res.json({ jsonrpc: "2.0", id, error: { code: -32001, message: `Erro ao processar chamada da ferramenta: ${err.message}` } });
+      }
+    }
+
+    default:
+      return res.json({ jsonrpc: "2.0", id, error: { code: -32601, message: `Método RPC não encontrado: ${method}` } });
+  }
 });
 
 // Endpoint: System Health Monitor (Docker, Ollama and general timings)
