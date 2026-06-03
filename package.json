@@ -54,7 +54,7 @@
     "@types/express": "^4.17.21",
     "@types/node": "^22.14.0",
     "concurrently": "^10.0.3",
-    "electron": "^42.3.2",
+    "electron": "^33.0.0",
     "electron-builder": "^26.8.1",
     "esbuild": "^0.25.0",
     "tsx": "^4.21.0",

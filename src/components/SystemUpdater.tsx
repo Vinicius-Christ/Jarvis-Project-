@@ -8,9 +8,19 @@ interface SystemUpdaterProps {
 
 export default function SystemUpdater({ updateState, onRefresh }: SystemUpdaterProps) {
   const [repoInput, setRepoInput] = useState(updateState?.githubRepo || "viniciusc-castro09/jarvis-system-suite");
+  const [tokenInput, setTokenInput] = useState(updateState?.githubToken || "");
   const [isSaving, setIsSaving] = useState(false);
   const [isChecking, setIsChecking] = useState(false);
   const [updateTriggered, setUpdateTriggered] = useState(false);
+
+  React.useEffect(() => {
+    if (updateState?.githubRepo) {
+      setRepoInput(updateState.githubRepo);
+    }
+    if (updateState?.githubToken !== undefined) {
+      setTokenInput(updateState.githubToken);
+    }
+  }, [updateState?.githubRepo, updateState?.githubToken]);
 
   const saveConfig = async () => {
     setIsSaving(true);
@@ -18,7 +28,7 @@ export default function SystemUpdater({ updateState, onRefresh }: SystemUpdaterP
       const res = await fetch("/api/system/update/config", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ githubRepo: repoInput }),
+        body: JSON.stringify({ githubRepo: repoInput, githubToken: tokenInput }),
       });
       if (res.ok) {
         onRefresh();
@@ -121,6 +131,16 @@ export default function SystemUpdater({ updateState, onRefresh }: SystemUpdaterP
                   value={repoInput}
                   onChange={(e) => setRepoInput(e.target.value)}
                   placeholder="usuario/nome-repo"
+                  className="w-full bg-zinc-950 border border-zinc-850 focus:border-cyan-500/50 rounded-lg p-2.5 text-xs text-white font-mono placeholder-zinc-700 outline-none"
+                />
+              </div>
+              <div>
+                <label className="text-[9px] text-zinc-400 font-mono block mb-1">Token de Acesso GitHub (Opcional - p/ Repos Privados)</label>
+                <input
+                  type="password"
+                  value={tokenInput}
+                  onChange={(e) => setTokenInput(e.target.value)}
+                  placeholder="ghp_xxxxxxxxxxxxxxxxxxxxx"
                   className="w-full bg-zinc-950 border border-zinc-850 focus:border-cyan-500/50 rounded-lg p-2.5 text-xs text-white font-mono placeholder-zinc-700 outline-none"
                 />
               </div>

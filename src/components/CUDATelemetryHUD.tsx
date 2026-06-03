@@ -296,12 +296,14 @@ export default function CUDATelemetryHUD() {
                   <YAxis stroke="#475569" fontSize={9} tickLine={false} unit="G" />
                   <Tooltip
                     contentStyle={{
-                      backgroundColor: "#09090b",
-                      border: "1px solid #1e293b",
+                      backgroundColor: "var(--color-zinc-950)",
+                      border: "1px solid var(--color-zinc-850)",
                       borderRadius: "12px",
                       fontFamily: "monospace",
                       fontSize: "10.5px"
                     }}
+                    itemStyle={{ color: "var(--color-zinc-400)" }}
+                    labelStyle={{ color: "var(--color-zinc-400)" }}
                   />
                   <Area
                     name="Saturação VRAM (GB)"

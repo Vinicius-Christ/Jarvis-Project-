@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Sliders, Plus, Link, Wifi, Save, ArrowUpRight, Cpu, HelpCircle, HardDrive, ShieldCheck, CheckCircle, Palette } from "lucide-react";
+import { Sliders, Plus, Link, Wifi, Save, ArrowUpRight, Cpu, HelpCircle, HardDrive, ShieldCheck, CheckCircle, Palette, Sun, Moon } from "lucide-react";
 import PackagerModule from "./PackagerModule";
 
 interface DeviceConfigProps {
@@ -8,6 +8,8 @@ interface DeviceConfigProps {
   currentTheme: "cyan" | "amber" | "violet" | "emerald" | "rose";
   onChangeTheme: (theme: "cyan" | "amber" | "violet" | "emerald" | "rose") => void;
   configTab: "general" | "appearance";
+  isDarkMode?: boolean;
+  onToggleDarkMode?: () => void;
 }
 
 const PERSONAS_LIST = [
@@ -83,7 +85,7 @@ const HOLO_THEMES = {
   }
 };
 
-export default function DeviceConfig({ devices, onRefresh, currentTheme, onChangeTheme, configTab }: DeviceConfigProps) {
+export default function DeviceConfig({ devices, onRefresh, currentTheme, onChangeTheme, configTab, isDarkMode = true, onToggleDarkMode }: DeviceConfigProps) {
   // Local states for device additions
   const [activePersona, setActivePersona] = useState<string>("jarvis");
 
@@ -235,6 +237,40 @@ export default function DeviceConfig({ devices, onRefresh, currentTheme, onChang
               Altere as cores principais das linhas de varredura laser, botões de comando, badges de telemetria e gráficos instantaneamente.
             </p>
           </div>
+
+          {/* Theme Base Toggle (Light/Dark Mode) */}
+          {onToggleDarkMode && (
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4.5 rounded-2xl bg-zinc-950/60 border border-zinc-900 gap-4">
+              <div className="space-y-1">
+                <h4 className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
+                  {isDarkMode ? <Moon className="h-4 w-4 text-cyan-400" /> : <Sun className="h-4 w-4 text-amber-500 animate-[spin_8s_linear_infinite]" />}
+                  Luminosidade do Sistema (Modo de Operação)
+                </h4>
+                <p className="text-[11px] text-zinc-400">
+                  {isDarkMode 
+                    ? "Tema Escuro Ativado: focado em baixo consumo de energia em repouso e conforto visual de laboratório." 
+                    : "Tema Claro Ativado: contraste máximo ideal para ambientes externos altamente iluminados."}
+                </p>
+              </div>
+              
+              <button
+                onClick={onToggleDarkMode}
+                className="px-4 py-2 rounded-xl border border-zinc-800 hover:border-zinc-700 bg-zinc-900 hover:bg-zinc-850 text-white font-mono text-xs flex items-center gap-2 transition-all cursor-pointer shadow-md select-none self-start sm:self-auto shrink-0"
+              >
+                {isDarkMode ? (
+                  <>
+                    <Sun className="h-3.5 w-3.5 text-amber-400" />
+                    <span>Mudar para Modo Claro</span>
+                  </>
+                ) : (
+                  <>
+                    <Moon className="h-3.5 w-3.5 text-cyan-400" />
+                    <span>Mudar para Modo Escuro</span>
+                  </>
+                )}
+              </button>
+            </div>
+          )}
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             {Object.entries(HOLO_THEMES).map(([key, t]) => (

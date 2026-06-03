@@ -1023,7 +1023,8 @@ let updaterState = {
   remoteVersion: "5.0.0",
   remoteMessage: "",
   logs: [] as string[],
-  githubRepo: "viniciusc-castro09/jarvis-system-suite"
+  githubRepo: "viniciusc-castro09/jarvis-system-suite",
+  githubToken: ""
 };
 
 // If repo is configured in db, load it
@@ -1033,6 +1034,7 @@ if (!(db as any).githubRepo) {
 } else {
   updaterState.githubRepo = (db as any).githubRepo;
 }
+updaterState.githubToken = (db as any).githubToken || "";
 
 function getLocalCommitSync() {
   try {
@@ -1065,17 +1067,22 @@ function copyFolderRecursiveSync(src: string, dest: string) {
 
 app.get("/api/system/update/status", (req, res) => {
   updaterState.githubRepo = (db as any).githubRepo || "viniciusc-castro09/jarvis-system-suite";
+  updaterState.githubToken = (db as any).githubToken || "";
   res.json(updaterState);
 });
 
 app.post("/api/system/update/config", (req, res) => {
-  const { githubRepo } = req.body;
+  const { githubRepo, githubToken } = req.body;
   if (githubRepo) {
     (db as any).githubRepo = githubRepo;
     updaterState.githubRepo = githubRepo;
-    saveDB();
   }
-  res.json({ success: true, githubRepo: updaterState.githubRepo });
+  if (githubToken !== undefined) {
+    (db as any).githubToken = githubToken;
+    updaterState.githubToken = githubToken;
+  }
+  saveDB();
+  res.json({ success: true, githubRepo: updaterState.githubRepo, githubToken: updaterState.githubToken });
 });
 
 app.get("/api/system/update/check", async (req, res) => {
@@ -1091,14 +1098,19 @@ app.get("/api/system/update/check", async (req, res) => {
       throw new Error("Formato de repositório inválido. Use 'usuario/nome-repo'.");
     }
     
-    // Config User-Agent header and standard timeout
+    // Config User-Agent header and standard timeout with optional token authorization
+    const headers: Record<string, string> = {
+      "User-Agent": "JARVIS-Core-Suite-v5.0-Updater",
+      "Accept": "application/vnd.github.v3+json"
+    };
+    if (updaterState.githubToken) {
+      headers["Authorization"] = `token ${updaterState.githubToken}`;
+    }
+
     const commitRes = await fetch(
       `https://api.github.com/repos/${updaterState.githubRepo}/commits/main`,
       {
-        headers: {
-          "User-Agent": "JARVIS-Core-Suite-v5.0-Updater",
-          "Accept": "application/vnd.github.v3+json"
-        },
+        headers,
         signal: AbortSignal.timeout(10000)
       } as any
     );
@@ -1160,11 +1172,19 @@ app.post("/api/system/update/run", (req, res) => {
         updaterState.logs.push("[GIT] [PROCESSO] Efetuando pull das últimas mudanças do branch 'main'...");
         
         await new Promise<void>((resolve, reject) => {
-          exec("git pull origin main", { timeout: 30000 }, (err, stdout, stderr) => {
+          let repoUrlWithAuth = "origin";
+          if (updaterState.githubToken) {
+            repoUrlWithAuth = `https://${updaterState.githubToken}@github.com/${updaterState.githubRepo}.git`;
+          }
+          
+          const cmd = repoUrlWithAuth === "origin" ? "git pull origin main" : `git pull "${repoUrlWithAuth}" main`;
+          exec(cmd, { timeout: 30000 }, (err, stdout, stderr) => {
             if (err) {
-              updaterState.logs.push(`[AVISO] git pull origin main falhou: ${stderr || err.message}`);
-              updaterState.logs.push("[GIT] Tentando apenas 'git pull' sem amarrações...");
-              exec("git pull", { timeout: 30000 }, (err2, stdout2, stderr2) => {
+              const debugErr = stderr || err.message;
+              updaterState.logs.push(`[AVISO] git pull falhou: ${debugErr}`);
+              const fallbackCmd = updaterState.githubToken ? `git pull "${repoUrlWithAuth}"` : "git pull";
+              updaterState.logs.push("[GIT] Tentando comando de pull sem amarrações...");
+              exec(fallbackCmd, { timeout: 30000 }, (err2, stdout2, stderr2) => {
                 if (err2) reject(new Error("Falha no comando de pull do Git: " + (stderr2 || err2.message)));
                 else {
                   updaterState.logs.push(stdout2 || "[GIT] Pull realizado com sucesso.");
@@ -1183,15 +1203,25 @@ app.post("/api/system/update/run", (req, res) => {
         const tempZipFile = path.join(process.cwd(), "temp_update.zip");
         const tempExtractDir = path.join(process.cwd(), "temp_extract");
 
-        updaterState.logs.push(`[WEB] Efetuando download de ZIP seguro da stack: https://github.com/${updaterState.githubRepo}/archive/refs/heads/main.zip`);
+        // If we have a token, we download from api.github.com/repos/.../zipball/main
+        const zipUrl = updaterState.githubToken 
+          ? `https://api.github.com/repos/${updaterState.githubRepo}/zipball/main`
+          : `https://github.com/${updaterState.githubRepo}/archive/refs/heads/main.zip`;
+
+        updaterState.logs.push(`[WEB] Efetuando download de ZIP seguro da stack: ${zipUrl.replace(updaterState.githubToken, "TOKEN_REDACTED")}`);
         
         // Clean old updates temp files
         if (fs.existsSync(tempZipFile)) fs.unlinkSync(tempZipFile);
         if (fs.existsSync(tempExtractDir)) fs.rmSync(tempExtractDir, { recursive: true, force: true });
 
         // Fetch zip
-        const zipRes = await fetch(`https://github.com/${updaterState.githubRepo}/archive/refs/heads/main.zip`, {
-          headers: { "User-Agent": "JARVIS-Suite-Downloader" },
+        const headers: Record<string, string> = { "User-Agent": "JARVIS-Suite-Downloader" };
+        if (updaterState.githubToken) {
+          headers["Authorization"] = `token ${updaterState.githubToken}`;
+        }
+
+        const zipRes = await fetch(zipUrl, {
+          headers,
           signal: AbortSignal.timeout(60000)
         } as any);
 

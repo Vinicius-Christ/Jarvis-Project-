@@ -1,6 +1,7 @@
 const { app, BrowserWindow, Menu, Tray, nativeImage } = require('electron');
 const { spawn, exec } = require('child_process');
 const path = require('path');
+const fs = require('fs');
 
 let mainWindow;
 let serverProcess;
@@ -56,19 +57,42 @@ function createWindow() {
   });
 }
 
-function createTray() {
-  // Criamos uma imagem vazia ou usamos um ícone padrão do sistema para garantir inicialização sem quebra de arquivo
-  // Podemos configurar um ícone padrão do Windows
-  const iconPath = path.join(__dirname, 'dist', 'favicon.ico');
+function getTrayIcon() {
+  const icoPath = path.join(__dirname, 'dist', 'favicon.ico');
+  const pngPath = path.join(__dirname, 'assets', 'icon.png');
   
+  if (fs.existsSync(icoPath)) {
+    try {
+      return nativeImage.createFromPath(icoPath);
+    } catch (err) {
+      console.warn("Falha ao criar nativeImage a partir de dist/favicon.ico:", err);
+    }
+  }
+  
+  if (fs.existsSync(pngPath)) {
+    try {
+      return nativeImage.createFromPath(pngPath);
+    } catch (err) {
+      console.warn("Falha ao criar nativeImage a partir de assets/icon.png:", err);
+    }
+  }
+  
+  // Último fallback robusto para evitar quebras em empacotamentos asar
+  return nativeImage.createEmpty();
+}
+
+function createTray() {
   try {
-    tray = new Tray(iconPath);
+    const icon = getTrayIcon();
+    tray = new Tray(icon);
   } catch (err) {
-    // Cria uma bandeja genérica de texto nas plataformas suportadas se falhar o carregamento do icone .ico físico
-    // No Windows, tentamos inicializar uma string genérica ou ignoramos o erro criando uma bandeja nula
-    console.log("Ícone .ico não encontrado na pasta dist. Tentando bandeja simplificada.");
-    // Fallback silencioso usando uma imagem nativa vazia
-    tray = new Tray(nativeImage.createEmpty()); 
+    console.log("Falha ao criar Tray com imagens em cache. Tentando bandeja em modo vazio seguro.", err);
+    try {
+      tray = new Tray(nativeImage.createEmpty());
+    } catch (fallbackErr) {
+      console.error("Erro absoluto ao inicializar o Tray do Electron:", fallbackErr);
+      return;
+    }
   }
 
   const contextMenu = Menu.buildFromTemplate([
@@ -92,14 +116,18 @@ function createTray() {
       label: 'Pausar Recursos (Docker Compose)',
       click: function () {
         console.log("[TRAY] Hibernando containers via compose...");
-        exec("docker compose pause", { cwd: app.getAppPath() });
+        exec("docker compose pause", { cwd: app.getAppPath(), shell: true }, (err, stdout, stderr) => {
+          if (err) console.error("[Docker Pause Erro]", err);
+        });
       }
     },
     {
       label: 'Retomar Recursos (Docker Compose)',
       click: function () {
         console.log("[TRAY] Despausando containers via compose...");
-        exec("docker compose unpause", { cwd: app.getAppPath() });
+        exec("docker compose unpause", { cwd: app.getAppPath(), shell: true }, (err, stdout, stderr) => {
+          if (err) console.error("[Docker Unpause Erro]", err);
+        });
       }
     },
     { type: 'separator' },
