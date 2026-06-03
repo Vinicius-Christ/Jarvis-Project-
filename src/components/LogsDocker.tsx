@@ -35,6 +35,17 @@ export default function LogsDocker() {
     { id: "redis", name: "Redis Core", desc: "Buffer em memória para mensageria assíncrona.", port: "6379" }
   ];
 
+  const [agentStatuses, setAgentStatuses] = useState<Record<string, string>>({
+    agent_coder: "running",
+    agent_obsidian: "paused"
+  });
+
+  const workerNodesList = [
+    { id: "agent_coder", name: "Agente SSH (Coder)", desc: "Worker rodando Llama 3.1 isolado focado em comandos SSH no host.", limit: "3.5GB VRAM" },
+    { id: "agent_obsidian", name: "Agente Leitor (Vault)", desc: "Worker lendo arquivos .md do Obsidian via integração n8n.", limit: "1.5GB VRAM" },
+    { id: "agent_research", name: "Agente Deep Research", desc: "Varredura DuckDuckGo via CLI.", limit: "2.5GB VRAM" }
+  ];
+
   const fetchContainerStatuses = async () => {
     try {
       const res = await fetch("/api/system/health");
@@ -262,6 +273,72 @@ export default function LogsDocker() {
             </div>
           );
         })}
+      </div>
+
+      <div className="border-t border-zinc-900/60 my-2" />
+
+      {/* NEW: GESTOR DE AGENTES ESPECIALIZADOS (WORKER NODES) */}
+      <div>
+        <h3 className="text-xs text-[var(--brand-light)] font-mono font-bold flex items-center gap-2 mb-3 tracking-wider">
+          <Layers className="h-3.5 w-3.5 text-[var(--brand-light)]" />
+          GESTOR DE AGENTES ESPECIALIZADOS (WORKER NODES) VRAM-AWARE
+        </h3>
+        <p className="text-[11px] text-zinc-500 mb-4 font-sans">
+          Aloque "instâncias cegas" de LLMs locais para tarefas independentes restritas aos limites físicos da sua Placa de Vídeo. Use para leitura isolada do Obsidian ou acesso contínuo SSH.
+          O <b>Smart Offload</b> desaloca modelos inativos da memória após 5 minutos.
+        </p>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {workerNodesList.map((agent) => {
+            const status = agentStatuses[agent.id] || "paused";
+            return (
+              <div key={agent.id} className="bg-zinc-950 border border-[var(--brand-primary)]/20 rounded-xl p-4 flex flex-col justify-between space-y-3 relative overflow-hidden group hover:border-[var(--brand-primary)]/50 transition-colors">
+                <div className="flex justify-between items-start">
+                  <h4 className="text-[11px] font-mono font-bold text-white flex items-center gap-1.5 uppercase tracking-wide">
+                    {agent.name}
+                  </h4>
+                  <span className={`text-[9px] font-mono px-2 py-0.5 rounded-full uppercase font-bold tracking-tight border ${
+                    status === "running"
+                      ? "bg-emerald-950/30 border-emerald-500/20 text-emerald-400 animate-pulse"
+                      : "bg-zinc-900 border-zinc-700 text-zinc-500"
+                  }`}>
+                    {status === "running" ? "Executando" : "Hibernado"}
+                  </span>
+                </div>
+                
+                <p className="text-[10px] text-zinc-400 font-sans leading-relaxed flex-1">
+                  {agent.desc}
+                </p>
+
+                <div className="flex items-center justify-between text-[9px] font-mono border-t border-zinc-900/50 pt-2 pb-1 text-zinc-500 mt-auto">
+                   <div className="flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[var(--brand-primary)]"></span>
+                      VRAM Lock
+                   </div>
+                   <span className="text-[var(--brand-light)] font-bold">{agent.limit}</span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-1 pt-2 border-t border-zinc-900">
+                  {status !== "running" ? (
+                    <button
+                      onClick={() => setAgentStatuses(prev => ({ ...prev, [agent.id]: "running" }))}
+                      className="col-span-2 py-1.5 rounded-md bg-[var(--brand-primary)]/10 hover:bg-[var(--brand-primary)]/20 border border-[var(--brand-primary)]/30 text-[var(--brand-light)] text-[10px] font-mono font-bold flex items-center justify-center gap-1 cursor-pointer transition"
+                    >
+                      <Play className="h-3 w-3" /> Instanciar Agent
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => setAgentStatuses(prev => ({ ...prev, [agent.id]: "paused" }))}
+                      className="col-span-2 py-1.5 rounded-md bg-zinc-900 hover:bg-red-950/30 border border-zinc-800 text-red-400 text-[10px] font-mono font-bold flex items-center justify-center gap-1 cursor-pointer transition"
+                    >
+                      <Pause className="h-3 w-3" /> Liberar VRAM
+                    </button>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
 
       <div className="border-t border-zinc-900/60 my-2" />

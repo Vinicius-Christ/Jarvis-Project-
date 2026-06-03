@@ -50,6 +50,7 @@ import SystemUpdater from "./components/SystemUpdater";
 import ChromaInspector from "./components/ChromaInspector";
 import CUDATelemetryHUD from "./components/CUDATelemetryHUD";
 import SSHDiagnostics from "./components/SSHDiagnostics";
+import MCPSettings from "./components/MCPSettings";
 
 const HOLO_THEMES = {
   cyan: {
@@ -96,7 +97,7 @@ const HOLO_THEMES = {
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<"dashboard" | "finance" | "agenda" | "settings" | "readme" | "diagnostics">("dashboard");
-  const [settingsTab, setSettingsTab] = useState<"general" | "appearance" | "installer" | "obsidian" | "logs" | "updates" | "chromadb" | "cudautil">("general");
+  const [settingsTab, setSettingsTab] = useState<"general" | "appearance" | "installer" | "obsidian" | "logs" | "updates" | "chromadb" | "cudautil" | "mcp">("general");
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [systemState, setSystemState] = useState<any>(null);
   const [hardwareStats, setHardwareStats] = useState<any>(null);
@@ -1418,6 +1419,16 @@ export default function App() {
                 🧠 Memória ChromaDB
               </button>
               <button
+                onClick={() => setSettingsTab("mcp")}
+                className={`px-4 py-2 border-b-2 font-bold tracking-wider transition-all cursor-pointer whitespace-nowrap relative ${
+                  settingsTab === "mcp"
+                    ? "border-[var(--brand-primary)] text-[var(--brand-light)] bg-[var(--brand-glow)]"
+                    : "border-transparent text-zinc-500 hover:text-zinc-300"
+                }`}
+              >
+                🔌 Integração MCP
+              </button>
+              <button
                 onClick={() => setSettingsTab("cudautil")}
                 className={`px-4 py-2 border-b-2 font-bold tracking-wider transition-all cursor-pointer whitespace-nowrap ${
                   settingsTab === "cudautil"
@@ -1522,6 +1533,10 @@ export default function App() {
 
             {settingsTab === "chromadb" && (
               <ChromaInspector />
+            )}
+
+            {settingsTab === "mcp" && (
+              <MCPSettings />
             )}
 
             {settingsTab === "cudautil" && (
