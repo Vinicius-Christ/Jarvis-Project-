@@ -1,4 +1,4 @@
-const { app, BrowserWindow, Menu, Tray } = require('electron');
+const { app, BrowserWindow, Menu, Tray, nativeImage } = require('electron');
 const { spawn, exec } = require('child_process');
 const path = require('path');
 
@@ -26,28 +26,18 @@ function createWindow() {
     // Caso não queira html estático direto, vai para o loader
   });
 
-  // Inicializa o backend Express de alta performance (que serve os assets compilados do React no modo produção)
-  serverProcess = spawn('node', ['dist/server.cjs'], {
-    cwd: app.getAppPath(),
-    shell: true
-  });
-
-  serverProcess.stdout.on('data', (data) => {
-    const logStr = data.toString();
-    console.log(`[Server] ${logStr}`);
-    if (logStr.includes('running on') || logStr.includes('running on http://localhost:3000')) {
-      mainWindow.loadURL('http://localhost:3000');
-    }
-  });
-
-  serverProcess.stderr.on('data', (data) => {
-    console.error(`[Server Erro] ${data.toString()}`);
-  });
-
-  // Tenta conectar passados alguns instantes em caso de perda de log
-  setTimeout(() => {
-    mainWindow.loadURL('http://localhost:3000').catch(() => console.log("Aguardando inicialização do servidor..."));
-  }, 3500);
+  // Inicializa o backend Express requerendo diretamente no processo main
+  try {
+    process.env.NODE_ENV = 'production';
+    require(path.join(__dirname, 'dist', 'server.cjs'));
+    console.log("[Server] EXPRESS SERVER INICIADO INTERNAMENTE");
+    
+    setTimeout(() => {
+      mainWindow.loadURL('http://localhost:3000').catch(() => {});
+    }, 1500);
+  } catch (err) {
+    console.error("[Server Erro Interno]", err);
+  }
 
   // Quando o usuário tenta fechar a janela, interceptamos para esconder na bandeja (segundo plano)
   mainWindow.on('close', function (event) {
@@ -77,8 +67,8 @@ function createTray() {
     // Cria uma bandeja genérica de texto nas plataformas suportadas se falhar o carregamento do icone .ico físico
     // No Windows, tentamos inicializar uma string genérica ou ignoramos o erro criando uma bandeja nula
     console.log("Ícone .ico não encontrado na pasta dist. Tentando bandeja simplificada.");
-    // Fallback silencioso usando um arquivo temporário vazio ou usando um ícone do sistema
-    tray = new Tray(path.join(__dirname, 'metadata.json')); // apenas para preencher o ponteiro de arquivo
+    // Fallback silencioso usando uma imagem nativa vazia
+    tray = new Tray(nativeImage.createEmpty()); 
   }
 
   const contextMenu = Menu.buildFromTemplate([

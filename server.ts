@@ -9,6 +9,19 @@ import dns from "dns";
 // Ensure localhost/ipv4 works nicely
 dns.setDefaultResultOrder("ipv4first");
 
+// Ensure AbortSignal.timeout is polyfilled for Node versions < 17.3
+if (typeof AbortSignal.timeout !== "function") {
+  (AbortSignal as any).timeout = function (ms: number) {
+    const controller = new AbortController();
+    setTimeout(() => {
+      try {
+        controller.abort();
+      } catch {}
+    }, ms);
+    return controller.signal;
+  };
+}
+
 const app = express();
 app.use(express.json());
 
@@ -911,76 +924,93 @@ app.post("/api/update/iot", async (req, res) => {
 
 // Endpoint: System Health Monitor (Docker, Ollama and general timings)
 app.get("/api/system/health", async (req, res) => {
-  let dockerLatency = 0;
-  let dockerStatus = "offline";
-  let ollamaLatency = 0;
-  let ollamaStatus = "offline";
-
-  // Test Docker
-  const startDocker = Date.now();
   try {
-     await new Promise<void>((resolve, reject) => {
-        exec("docker info", { timeout: 2000 }, (err) => {
-           if (err) reject(err);
-           else resolve();
-        });
-     });
-     dockerStatus = "online";
-     dockerLatency = Date.now() - startDocker;
-  } catch(e) {}
+    let dockerLatency = 0;
+    let dockerStatus = "offline";
+    let ollamaLatency = 0;
+    let ollamaStatus = "offline";
 
-  // Test Ollama
-  const startOllama = Date.now();
-  try {
-    const oRes = await fetch("http://127.0.0.1:11434/api/tags", { signal: AbortSignal.timeout(2000) } as any);
-    if (oRes.ok) {
-       ollamaStatus = "online";
-       ollamaLatency = Date.now() - startOllama;
-    }
-  } catch(e) {}
-
-  const localDbLatency = Math.floor(Math.random() * 5) + 1; // 1-5ms
-  
-  // Sincronizar estados dos containers Docker
-  const containerStates: Record<string, string> = {
-    chromadb: "running",
-    n8n: "running",
-    homeassistant: "running",
-    postgres: "running",
-    redis: "running",
-    ...(db.containerMockStates || {})
-  };
-
-  if (dockerStatus === "online") {
+    // Test Docker
+    const startDocker = Date.now();
     try {
-      await new Promise<void>((resolve) => {
-        exec("docker ps -a --format \"{{.Names}}\t{{.State}}\"", { timeout: 3000 }, (err, stdout) => {
-          if (!err && stdout) {
-            stdout.split("\n").filter(Boolean).forEach((line) => {
-              const parts = line.trim().split("\t");
-              if (parts.length >= 2) {
-                const name = parts[0];
-                const state = parts[1]; // 'running', 'paused', 'exited'
-                if (name.includes("chromadb")) containerStates.chromadb = state;
-                if (name.includes("n8n")) containerStates.n8n = state;
-                if (name.includes("homeassistant")) containerStates.homeassistant = state;
-                if (name.includes("postgres")) containerStates.postgres = state;
-                if (name.includes("redis")) containerStates.redis = state;
-              }
-            });
-          }
-          resolve();
+       await new Promise<void>((resolve, reject) => {
+          exec("docker info", { timeout: 2000 }, (err) => {
+             if (err) reject(err);
+             else resolve();
+          });
+       });
+       dockerStatus = "online";
+       dockerLatency = Date.now() - startDocker;
+    } catch(e) {}
+
+    // Test Ollama
+    const startOllama = Date.now();
+    try {
+      const oRes = await fetch("http://127.0.0.1:11434/api/tags", { signal: AbortSignal.timeout(2000) } as any);
+      if (oRes.ok) {
+         ollamaStatus = "online";
+         ollamaLatency = Date.now() - startOllama;
+      }
+    } catch(e) {}
+
+    const localDbLatency = Math.floor(Math.random() * 5) + 1; // 1-5ms
+    
+    // Sincronizar estados dos containers Docker
+    const containerStates: Record<string, string> = {
+      chromadb: "running",
+      n8n: "running",
+      homeassistant: "running",
+      postgres: "running",
+      redis: "running",
+      ...(db.containerMockStates || {})
+    };
+
+    if (dockerStatus === "online") {
+      try {
+        await new Promise<void>((resolve) => {
+          exec("docker ps -a --format \"{{.Names}}\t{{.State}}\"", { timeout: 3000 }, (err, stdout) => {
+            if (!err && stdout) {
+              stdout.split("\n").filter(Boolean).forEach((line) => {
+                const parts = line.trim().split("\t");
+                if (parts.length >= 2) {
+                  const name = parts[0];
+                  const state = parts[1]; // 'running', 'paused', 'exited'
+                  if (name.includes("chromadb")) containerStates.chromadb = state;
+                  if (name.includes("n8n")) containerStates.n8n = state;
+                  if (name.includes("homeassistant")) containerStates.homeassistant = state;
+                  if (name.includes("postgres")) containerStates.postgres = state;
+                  if (name.includes("redis")) containerStates.redis = state;
+                }
+              });
+            }
+            resolve();
+          });
         });
-      });
-    } catch (e) {}
+      } catch (e) {}
+    }
+    
+    res.json({
+      docker: { status: dockerStatus, latency: dockerLatency },
+      ollama: { status: ollamaStatus, latency: ollamaLatency },
+      localDb: { status: "online", latency: localDbLatency },
+      containers: containerStates
+    });
+  } catch (err: any) {
+    console.error("[Health API] Exception caught gracefully:", err);
+    res.json({
+      docker: { status: "offline", latency: 0 },
+      ollama: { status: "offline", latency: 0 },
+      localDb: { status: "online", latency: 1 },
+      containers: {
+        chromadb: "exited",
+        n8n: "exited",
+        homeassistant: "exited",
+        postgres: "exited",
+        redis: "exited",
+        ...(db.containerMockStates || {})
+      }
+    });
   }
-  
-  res.json({
-    docker: { status: dockerStatus, latency: dockerLatency },
-    ollama: { status: ollamaStatus, latency: ollamaLatency },
-    localDb: { status: "online", latency: localDbLatency },
-    containers: containerStates
-  });
 });
 
 // Local updater memory state (persisted when active)
@@ -1480,7 +1510,9 @@ async function startServer() {
     });
     app.use(vite.middlewares);
   } else {
-    const distPath = path.join(process.cwd(), "dist");
+    // In production, server.cjs is located inside the dist/ directory.
+    // So __dirname points directly to dist/ (even inside an electron .asar bundle).
+    const distPath = __dirname;
     app.use(express.static(distPath));
     app.get("*", (req, res) => {
       res.sendFile(path.join(distPath, "index.html"));
