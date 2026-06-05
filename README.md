@@ -31,44 +31,13 @@ O JARVIS é focado em processar todas as regras em hardware de VRAM dedicada (id
 
 ---
 
-## 🚀 Como Usar o Instalador Automatizado
+## 🚀 Instalação e Inicialização Automática
 
-O app fornece um fluxo de provisionamento automatizado de 1 clique, integrando ferramentas através do gerenciador de pacotes nativo do Windows (winget) e WSL2.
+Toda a infraestrutura do JARVIS v5.0 (Instalador Nativo do Windows via Powershell, Containers Docker, Modelos do Ollama e Integrações n8n) está consolidada em um único e definitivo guia passo-a-passo.
 
-### Passo 1: Preparação do Arquivo `.env`
-Renomeie o `.env.example` da raiz para `.env` e preencha as portas locais e credenciais do bot do Telegram:
-```env
-GEMINI_API_KEY="seu_token_opcional"
-APP_URL="a_url_da_estacao"
-```
+🔗 **[CLIQUE AQUI PARA ACESSAR O TUTORIAL COMPLETO DE INSTALAÇÃO](./TUTORIAL_COMPLETO_INSTALACAO_N8N.md)**
 
-### Passo 2: Execução do Script PowerShell
-Abra o **Windows PowerShell** no seu computador principal ou desktop servidor como **Administrador** e execute o script local:
-
-```powershell
-Set-ExecutionPolicy Bypass -Scope Process -Force
-.\AutoInstaller.ps1
-```
-
-O instalador irá:
-1. Habilitar o WSL2 e VirtualMachinePlatform se não estiverem ativos.
-2. Instalar silenciosamente o **Docker Desktop**, o **Obsidian** e o **Ollama**.
-3. Baixar os modelos `llama3.1` e `nomic-embed-text` preparando caches CUDA.
-4. Estruturar o Obsidian Vault com as pastas de perfil, controle financeiro e logs.
-
-### Passo 3: Provisionar os Containers Docker
-Após a instalação terminar e você reiniciar a máquina para carregar o Docker, entre no diretório e suba a stack:
-
-```bash
-docker compose up -d
-```
-
-Este comando provisiona:
-- **ChromaDB** (Buscador vetorial na porta 8000)
-- **n8n** (Orquestrador de workflows na porta 5678)
-- **Home Assistant** (Hub IoT local)
-- **PostgreSQL** (Banco relacional para finanças/compromissos na porta 5432)
-- **Redis** (Monitor de filas de inputs de voz)
+Siga o arquivo acima e em alguns minutos você terá seu próprio ecossistema de Inteligência Artificial privado rodando nativamente no seu Windows.
 
 ---
 

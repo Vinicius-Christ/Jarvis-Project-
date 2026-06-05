@@ -1,11 +1,11 @@
 # 📚 Tutorial Absoluto: Instalação e Configuração Completa do JARVIS Core Suite v5.0 (100% Gratuito e Local)
 
-Este guia foi criado para garantir que você provisione perfeitamente o sistema Jarvis e estruture os fluxos do **n8n** na própria máquina.
+Este guia foi criado para garantir que você provisione perfeitamente o sistema Jarvis, instale os apps e estruture os fluxos do **n8n** na própria máquina.
 **Sim, o sistema é totalmente gratuito e soberano.** Tudo roda no seu computador: a inteligência artificial (Ollama), o banco de dados (SQLite), e as integrações, sem depender de nenhuma nuvem de terceiros. Nenhuma assinatura ou API paga é exigida.
 
 ---
 
-## 🛠️ PARTE 1: INSTALAÇÃO E INICIALIZAÇÃO DA INTERFACE
+## 🛠️ PARTE 1: INSTALAÇÃO E INICIALIZAÇÃO DA INTERFACE E CONTAINER
 
 ### 1. Requisitos do Sistema
 Para que tudo rode localmente e de forma fluida:
@@ -13,25 +13,48 @@ Para que tudo rode localmente e de forma fluida:
 - Cerca de 8 a 15GB livres no disco para baixar o modelo Llama 3.1.
 - Node.js instalado (Versão 18+).
 
-### 2. Configurando o Projeto
+### 2. Rodando o Instalador Automatizado (Windows)
+A maneira mais fácil de instalar dependências de sistema como Docker, Obsidian e Ollama é através do script fornecido no pacote.
 1. Extraia o ZIP deste projeto numa pasta segura (ex: `C:\jarvis-system-suite`).
-2. Abra um terminal (PowerShell, CMD ou Terminal do VSCode) e navegue até a pasta do projeto.
-3. Instale as bibliotecas usando: 
-   `npm install`
-4. Na própria interface do Sistema JARVIS, você terá uma guia **"Senhas & Tokens .ENV"**. O sistema irá auto-gerar o arquivo `.env` para você de forma segura baseada nas chaves preenchidas (GitHub e Telegram). O armazenamento se manterá exclusivamente na sua máquina e nada irá vazar.
+2. Abra o **Windows PowerShell** como **Administrador**, navegue até a pasta extraída, e execute:
+   ```powershell
+   Set-ExecutionPolicy Bypass -Scope Process -Force
+   .\AutoInstaller.ps1
+   ```
+3. O instalador irá configurar o WSL2, instalar silenciosamente as ferramentas e baixar os modelos pesados da IA para você.
 
-### 3. Rodando o Motor JARVIS
-No seu terminal, inicie o ambiente de produção simultâneo:
-`npm run dev`
+### 3. Provisionando os Containers (Backend e Banco de Dados)
+Após a instalação terminar e você reiniciar a máquina para garantir o acesso do Docker, entre no diretório pelo terminal e suba a stack docker-compose:
+```bash
+docker compose up -d
+```
+Isso ligará os containers secundários em background: a "cola" (n8n), o vector store (ChromaDB), banco de dados (PostgreSQL), mensageria (Redis) e Home Assistant.
 
-Seu terminal vai indicar que o servidor (API na porta 3000) e a interface estão online. Abra seu navegador em:
-👉 **http://localhost:3000**
+### 4. Configurando e Instalando o App Desktop do JARVIS (Interface)
+Além dos containers em background, o JARVIS possui uma interface de controle própria (App Desktop via Electron) em vez de precisar abrir apenas no navegador. Em um terminal:
 
-Com o painel aberto, acesse o menu Configurações (roda dentada) -> **"Senhas & Tokens .ENV"** e configure a sua chave local do **GitHub** (necessário caso use a função de atualizações) e a chave do seu **Telegram**.
+1. Instale as bibliotecas usando: 
+   ```bash
+   npm install
+   ```
+2. **Para abrir o App localmente:**
+   ```bash
+   npm run dev      # Para rodar pelo navegador (http://localhost:3000)
+   npm run desktop  # Para rodar como App Desktop nativo (Recomendado)
+   ```
+3. **Para empacotar em um Instalador Final (`.exe`):**
+   ```bash
+   npm run dist
+   ```
+   Ao rodar o `npm run dist`, o `electron-builder` fará todo o processo de build do app e gerará um Instalador profissional (`JARVIS System Suite Setup.exe`) dentro da pasta `release`. Instale para poder abrir o Jarvis facilmente dando duplo clique ou iniciar ele automatizado no seu tray do Windows!
+
+Com o painel/app aberto, acesse o menu Configurações (roda dentada) -> **"Senhas & Tokens .ENV"** e configure a sua chave local do **GitHub** (necessário para receber atualizações do sistema por lá) e a chave do seu **Telegram**. O armazenamento se manterá exclusivamente na sua máquina copiando e enviando para o seu `.env`.
 
 ---
 
-## 🧠 PARTE 2: INSTALANDO O MOTOR DE IA LOCAL (OLLAMA)
+## 🧠 PARTE 2: INSTALANDO O MOTOR DE IA LOCAL MANUALMENTE (OLLAMA)
+
+*(Caso você tenha utilizado a Etapa 2 de AutoInstaller via arquivo `.ps1` com êxito, pode pular esta etapa pois o script já fez a instalação)*
 
 O cérebro do Jarvis exige o Ollama instalado na sua máquina para ter velocidade e privacidade nativa e não depender de provedores pagos na nuvem.
 
