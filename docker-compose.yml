@@ -30,7 +30,7 @@ services:
       - GENERIC_TIMEZONE=America/Sao_Paulo
     volumes:
       - n8n_data:/home/node/.n8n
-      - C:/jarvis-vault:/data/vault:ro # Mount Obsidian vault (Apenas Leitura para Segurança)
+      - ./jarvis-vault:/data/vault:ro # Mount Obsidian vault (Apenas Leitura para Segurança)
     restart: unless-stopped
 
   # Home Assistant - Hub unificado para internet das coisas (IoT) e automação de lâmpadas/ar

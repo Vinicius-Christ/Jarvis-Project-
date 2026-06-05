@@ -35,12 +35,12 @@ Source: "data\*"; DestDir: "{userappdata}\JARVIS Core\data"; Flags: ignoreversio
 Source: "docker-compose.yml"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
-Name: "{group}\JARVIS Core Suite"; Filename: "{app}\server.cjs"; IconFilename: "{app}\dist\favicon.ico"
-Name: "{commondesktop}\JARVIS Core Suite"; Filename: "{app}\server.cjs"; IconFilename: "{app}\dist\favicon.ico"; Tasks: desktopicon
+Name: "{group}\JARVIS Core Suite"; Filename: "npx.cmd"; Parameters: "electron electron-main.cjs"; WorkingDir: "{app}"; IconFilename: "{app}\dist\favicon.ico"
+Name: "{commondesktop}\JARVIS Core Suite"; Filename: "npx.cmd"; Parameters: "electron electron-main.cjs"; WorkingDir: "{app}"; IconFilename: "{app}\dist\favicon.ico"; Tasks: desktopicon
 
 [Registry]
 ; Registra o JARVIS para iniciar silenciosamente em segundo plano junto com o Windows se a Task estiver marcada
-Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Run"; ValueType: string; ValueName: "JARVISCore"; ValueData: """{app}\server.cjs"" --background"; Flags: uninsdeletevalue; Tasks: startup
+Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Run"; ValueType: string; ValueName: "JARVISCore"; ValueData: "powershell.exe -WindowStyle Hidden -Command ""cd '{app}'; npx electron electron-main.cjs"""; Flags: uninsdeletevalue; Tasks: startup
 
 [Run]
 ; Executa o ativador do ecossistema e instalador de dependências nativas (Docker, Ollama, Obsidian, Modelos RAG)
@@ -50,4 +50,4 @@ Filename: "powershell.exe"; Parameters: "-ExecutionPolicy Bypass -File ""{app}\A
 Filename: "powershell.exe"; Parameters: "-Command ""Set-Location '{app}'; docker compose up -d"""; Flags: runhidden postinstall; Description: "Iniciar Containers Docker do Sistema (ChromaDB, PostgreSQL, n8n)"
 
 ; Executa o backend invisivelmente
-Filename: "{app}\server.cjs"; Description: "{cm:LaunchProgram,JARVIS Core Suite}"; Flags: shellexec runascurrentuser postinstall nowait
+Filename: "npx.cmd"; Parameters: "electron electron-main.cjs"; WorkingDir: "{app}"; Description: "{cm:LaunchProgram,JARVIS Core Suite}"; Flags: runascurrentuser postinstall nowait

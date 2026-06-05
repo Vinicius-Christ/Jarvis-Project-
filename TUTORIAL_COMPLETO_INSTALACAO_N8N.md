@@ -103,6 +103,45 @@ Se já tiver o N8N aberto (http://localhost:5678), siga os tutoriais linha a lin
 Nesta configuração 100% gratuita:
 - Nenhum dado é roteado por empresas corporativas.
 - Não existem taxas mensais envolvidas com LLMs ou Banco de Dados.
-- Todas as solicitações ocorrem no limite das memórias isoladas do seu computador hospedeiro. 
+- Todas as solicitações ocorrem no limite das memórias isoladas do seu computador hospedeiro.
+
+---
+
+## 🔑 PARTE 4: GUIA DE VARIÁVEIS DE AMBIENTE E TOKENS (ONDE ENCONTRAR E COMO PREENCHER)
+
+Para que o JARVIS se comunique fisicamente com a sua casa, seu motor local de nuvem e ferramentas fallback, você precisará preencher algumas chaves. Tudo isso é preenchido através da guia **"Senhas & Tokens .ENV"** dentro da aplicação. O sistema pegará esses valores e salvará com segurança.
+
+### 1. `OLLAMA_HOST` (Conexão com a Inteligência Artificial Local)
+**O que é:** O endereço por onde os componentes (n8n, JARVIS App, etc.) encontram o Ollama rodando no seu PC.
+**Onde achar / Como preencher:**
+- Como tudo está rodando na sua própria máquina (localhost), o valor padrão na maioria dos casos é:
+  `http://localhost:11434`
+- Caso seu Ollama esteja rodando em outro computador na rede (ex: num mini-PC dedicado), você colocará o IP dele (ex: `http://192.168.15.20:11434`). Mas se instalou na mesma máquina que usa o JARVIS, é apenas **http://localhost:11434**.
+
+### 2. `HOME_ASSISTANT_IP` (Endereço da Automação Residencial)
+**O que é:** O endereço de rede (IP) do aparelho ou servidor onde o seu Home Assistant está instalado (Raspberry Pi, máquina virtual, etc.).
+**Onde achar / Como preencher:**
+- Na sua rede local, descubra o IP do servidor que hospeda o Home Assistant. Você pode olhar no painel do seu Roteador ou, se acessar pelo navegador, copiar o número.
+- O valor é apenas o IP comum, como por exemplo: `192.168.15.8` ou `192.168.0.101`. Não coloque "http(s)://" nem portas, apenas os números.
+
+### 3. `HOME_ASSISTANT_TOKEN` (Chave de Acesso para a IoT)
+**O que é:** A senha de "Longa Duração" (Long-Lived Access Token) que permite o JARVIS acender luzes e ler sensores sem você precisar a tela de login.
+**Onde achar / Como preencher:**
+1. Abra o seu **Home Assistant** no navegador.
+2. Clique no seu **Perfil de Usuário** (normalmente no canto inferior esquerdo, clicando nas suas iniciais).
+3. Vá até a aba **Segurança** (Security).
+4. Desça a página até encontrar a seção **Tokens de Acesso de Longa Duração** (Long-Lived Access Tokens).
+5. Clique em **Criar Token** (Create Token).
+6. Dê o nome de "JARVIS Core" e aperte **OK**.
+7. Uma caixa com uma sequência imensa de caracteres (criptográfica) vai aparecer. **Copie isso imediatamente**, pois não será mostrado novamente. Cole essa chave na caixa "HOME_ASSISTANT_TOKEN".
+
+### 4. `GROQ_API_KEY` (Opcional - Motor Rápido para Agentes Externos)
+**O que é:** Embora nosso foco seja rodar **tudo local** com Ollama, as vezes os fluxos do N8N exigem altíssima velocidade para pesquisas na web paralela. A documentação lista a "GROQ" que oferece modelos open-source (como Llama 3) super velozes via internet.
+**Onde achar / Como preencher:**
+1. Acesse [console.groq.com](https://console.groq.com/) a partir de seu navegador.
+2. Faça login com uma conta Google simples.
+3. No menu lateral, acesse **API Keys**.
+4. Clique no botão de criar uma nova chave e coloque um nome (ex: "n8n_jarvis").
+5. Copie a chave fornecida (normalmente começa com `gsk_...`) e cole no sistema. Essa chave pode ser deixada vazia sem problema caso você recuse dependência da nuvem até mesmo para fluxos do N8N, e opte somente por fluxos offline com Ollama.
 
 Parabéns pela implantação primária do JARVIS!

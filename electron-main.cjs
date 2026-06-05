@@ -4,7 +4,6 @@ const path = require('path');
 const fs = require('fs');
 
 let mainWindow;
-let serverProcess;
 let tray = null;
 let isQuitting = false;
 
@@ -77,8 +76,8 @@ function getTrayIcon() {
     }
   }
   
-  // Último fallback robusto para evitar quebras em empacotamentos asar
-  return nativeImage.createEmpty();
+  // Último fallback robusto usando um ícone minimalista em base64
+  return nativeImage.createFromDataURL('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==');
 }
 
 function createTray() {
@@ -135,9 +134,6 @@ function createTray() {
       label: 'Sair Completamente', 
       click: function () {
         isQuitting = true;
-        if (serverProcess) {
-          serverProcess.kill();
-        }
         app.quit();
       } 
     }
@@ -170,9 +166,6 @@ app.on('window-all-closed', function () {
 
 app.on('quit', () => {
   console.log("Finalizando servidor JARVIS de produção e limpando conexões...");
-  if (serverProcess) {
-    serverProcess.kill();
-  }
 });
 
 app.on('activate', function () {

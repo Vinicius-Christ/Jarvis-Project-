@@ -49,7 +49,6 @@ import Installer from "./components/Installer";
 import JarvisAssistant from "./components/JarvisAssistant";
 import LogsDocker from "./components/LogsDocker";
 import DeviceConfig from "./components/DeviceConfig";
-import PackagerModule from "./components/PackagerModule";
 import SystemUpdater from "./components/SystemUpdater";
 import ChromaInspector from "./components/ChromaInspector";
 import CUDATelemetryHUD from "./components/CUDATelemetryHUD";
