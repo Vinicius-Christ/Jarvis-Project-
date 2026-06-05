@@ -3,7 +3,7 @@
   "private": true,
   "version": "1.0.0",
   "description": "Sistema Jarvis Residencial e IA",
-  "author": "Voce",
+  "author": "Vinícius",
   "main": "electron-main.cjs",
   "type": "module",
   "scripts": {

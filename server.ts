@@ -52,7 +52,7 @@ let db = {
     ambientPreset: "",
     ac: { state: "off", temp: 24 },
     devices: [] as any[],
-    ip: "192.168.15.8",
+    ip: "",
     token: "COLOQUE_SEU_TOKEN_AQUI",
     wsStatus: "disconnected"
   },
@@ -156,7 +156,7 @@ function connectHomeAssistantWS() {
     reconnectTimeout = null;
   }
 
-  const ip = db.homeAssistant.ip || "192.168.15.8";
+  const ip = db.homeAssistant.ip || "";
   const token = db.homeAssistant.token || "COLOQUE_SEU_TOKEN_AQUI";
 
   console.log(`[HA WS] Tentando conectar ao Home Assistant em ws://${ip}:8123/api/websocket`);
@@ -288,7 +288,7 @@ function syncEntitiesWithDB(entities: any[]) {
       integration: "Matter / Zigbee / WiFi (WS-Live)",
       status: statusText,
       state: currentState,
-      targetUrl: `http://${db.homeAssistant.ip || "192.168.15.8"}:8123`
+      targetUrl: `http://${db.homeAssistant.ip || ""}:8123`
     };
   });
 
@@ -333,7 +333,7 @@ function updateEntityInDB(entity: any) {
     integration: "Matter / Zigbee / WiFi (WS-Live)",
     status: statusText,
     state: currentState,
-    targetUrl: `http://${db.homeAssistant.ip || "192.168.15.8"}:8123`
+    targetUrl: `http://${db.homeAssistant.ip || ""}:8123`
   };
 
   if (existingIdx >= 0) {
@@ -1128,7 +1128,7 @@ app.post("/api/update/agenda", (req, res) => {
 app.post("/api/update/iot", async (req, res) => {
   const { deviceId, state, brightness, color, presetName } = req.body;
 
-  const HOME_ASSISTANT_IP = db.homeAssistant.ip || "192.168.15.8"; 
+  const HOME_ASSISTANT_IP = db.homeAssistant.ip || ""; 
   const HA_TOKEN = db.homeAssistant.token || "COLOQUE_SEU_TOKEN_AQUI"; 
 
   if (presetName) {
@@ -1968,7 +1968,7 @@ app.post("/api/iot/add", (req, res) => {
     integration: integration || "Suporte Universal",
     state: "on",
     status: status || "Registrado com sucesso",
-    targetUrl: targetUrl || "http://192.168.1.104:8123" // Home Assistant central IP URL
+    targetUrl: targetUrl || `http://${db.homeAssistant.ip || ""}:8123`
   };
 
   db.homeAssistant.devices.push(newDevice);
