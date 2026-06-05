@@ -114,7 +114,6 @@ export default function App() {
     | "tokens"
   >("general");
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const isDarkMode = true;
   const [systemState, setSystemState] = useState<any>(null);
   const [hardwareStats, setHardwareStats] = useState<any>(null);
   const [timeStr, setTimeStr] = useState("");
@@ -636,22 +635,22 @@ export default function App() {
     <div
       style={themeStyles}
       className={`w-full min-h-screen flex font-sans overflow-hidden select-none transition-all duration-300 ${
-        isDarkMode ? "dark bg-[#020408] text-zinc-300" : "light bg-[#f8fafc] text-zinc-800"
+        "dark bg-[#020408] text-zinc-300"
       }`}
     >
       {/* Sidebar Navigation */}
       <aside
         className={`${isSidebarOpen ? "w-64" : "w-16"} transition-all duration-300 flex flex-col border-r ${
-          isDarkMode ? "border-zinc-900 bg-[#020408]" : "border-zinc-200 bg-white shadow-sm"
+          "border-zinc-900 bg-[#020408]"
         } shrink-0 z-20`}
       >
         <div className={`h-[73px] flex items-center justify-between p-4 border-b shrink-0 sticky top-0 ${
-          isDarkMode ? "border-zinc-900 bg-[#020408]" : "border-zinc-200 bg-white"
+          "border-zinc-900 bg-[#020408]"
         } z-30`}>
           {isSidebarOpen && (
             <div className="flex items-center gap-2 overflow-hidden whitespace-nowrap">
               <Shield className="h-5 w-5 text-[var(--brand-light)] shrink-0" />
-              <span className={`font-bold tracking-widest text-xs ${isDarkMode ? "text-white" : "text-zinc-800"}`}>
+              <span className={`font-bold tracking-widest text-xs ${"text-white"}`}>
                 JARVIS OS
               </span>
             </div>
@@ -661,9 +660,7 @@ export default function App() {
             className={`p-1.5 rounded-lg transition border shrink-0 ${
               isSidebarOpen ? "" : "mx-auto"
             } ${
-              isDarkMode 
-                ? "bg-zinc-900/50 hover:bg-zinc-800 text-zinc-400 hover:text-white border-transparent hover:border-zinc-700" 
-                : "bg-zinc-50 hover:bg-zinc-100 text-zinc-500 hover:text-zinc-900 border-zinc-200"
+              "bg-zinc-900/50 hover:bg-zinc-800 text-zinc-400 hover:text-white border-transparent hover:border-zinc-700"
             }`}
           >
             {isSidebarOpen ? (
@@ -680,9 +677,7 @@ export default function App() {
             className={`flex items-center gap-2 px-3 py-2.5 rounded-lg text-xs font-medium transition cursor-pointer whitespace-nowrap w-full border ${
               activeTab === "dashboard"
                 ? "bg-[var(--brand-glow)] text-[var(--brand-light)] border-[var(--brand-border)] font-bold shadow-[0_0_12px_var(--brand-glow-strong)]"
-                : isDarkMode
-                  ? "text-zinc-400 border-transparent hover:text-zinc-200 hover:bg-zinc-900/60"
-                  : "text-zinc-650 border-transparent hover:text-zinc-900 hover:bg-zinc-100/80"
+                : "text-zinc-400 border-transparent hover:text-zinc-200 hover:bg-zinc-900/60"
             }`}
             title="Painel de Controle (HUD)"
           >
@@ -695,9 +690,7 @@ export default function App() {
             className={`flex items-center gap-2 px-3 py-2.5 rounded-lg text-xs font-medium transition cursor-pointer whitespace-nowrap w-full border ${
               activeTab === "finance"
                 ? "bg-[var(--brand-glow)] text-[var(--brand-light)] border-[var(--brand-border)] font-bold shadow-[0_0_12px_var(--brand-glow-strong)]"
-                : isDarkMode
-                  ? "text-zinc-400 border-transparent hover:text-zinc-200 hover:bg-zinc-900/60"
-                  : "text-zinc-650 border-transparent hover:text-zinc-900 hover:bg-zinc-100/80"
+                : "text-zinc-400 border-transparent hover:text-zinc-200 hover:bg-zinc-900/60"
             }`}
             title="Financeiro"
           >
@@ -710,9 +703,7 @@ export default function App() {
             className={`flex items-center gap-2 px-3 py-2.5 rounded-lg text-xs font-medium transition cursor-pointer whitespace-nowrap w-full border ${
               activeTab === "agenda"
                 ? "bg-[var(--brand-glow)] text-[var(--brand-light)] border-[var(--brand-border)] font-bold shadow-[0_0_12px_var(--brand-glow-strong)]"
-                : isDarkMode
-                  ? "text-zinc-400 border-transparent hover:text-zinc-200 hover:bg-zinc-900/60"
-                  : "text-zinc-650 border-transparent hover:text-zinc-900 hover:bg-zinc-100/80"
+                : "text-zinc-400 border-transparent hover:text-zinc-200 hover:bg-zinc-900/60"
             }`}
             title="Agenda"
           >
@@ -725,9 +716,7 @@ export default function App() {
             className={`flex items-center gap-2 px-3 py-2.5 rounded-lg text-xs font-medium transition cursor-pointer whitespace-nowrap w-full border ${
               activeTab === "settings"
                 ? "bg-[var(--brand-glow)] text-[var(--brand-light)] border-[var(--brand-border)] font-bold shadow-[0_0_12px_var(--brand-glow-strong)]"
-                : isDarkMode
-                  ? "text-zinc-400 border-transparent hover:text-zinc-200 hover:bg-zinc-900/60"
-                  : "text-zinc-650 border-transparent hover:text-zinc-900 hover:bg-zinc-100/80"
+                : "text-zinc-400 border-transparent hover:text-zinc-200 hover:bg-zinc-900/60"
             }`}
             title="Configurações & IoT"
           >
@@ -740,9 +729,7 @@ export default function App() {
             className={`flex items-center gap-2 px-3 py-2.5 rounded-lg text-xs font-medium transition cursor-pointer whitespace-nowrap w-full border ${
               activeTab === "diagnostics"
                 ? "bg-[var(--brand-glow)] text-[var(--brand-light)] border-[var(--brand-border)] font-bold shadow-[0_0_12px_var(--brand-glow-strong)]"
-                : isDarkMode
-                  ? "text-zinc-400 border-transparent hover:text-zinc-200 hover:bg-zinc-900/60"
-                  : "text-zinc-650 border-transparent hover:text-zinc-900 hover:bg-zinc-100/80"
+                : "text-zinc-400 border-transparent hover:text-zinc-200 hover:bg-zinc-900/60"
             }`}
             title="Diagnósticos & SSH"
           >
@@ -755,9 +742,7 @@ export default function App() {
             className={`flex items-center gap-2 px-3 py-2.5 rounded-lg text-xs font-medium transition cursor-pointer whitespace-nowrap w-full border ${
               activeTab === "readme"
                 ? "bg-[var(--brand-glow)] text-[var(--brand-light)] border-[var(--brand-border)] font-bold shadow-[0_0_12px_var(--brand-glow-strong)]"
-                : isDarkMode
-                  ? "text-zinc-400 border-transparent hover:text-zinc-200 hover:bg-zinc-900/60"
-                  : "text-zinc-650 border-transparent hover:text-zinc-900 hover:bg-zinc-100/80"
+                : "text-zinc-400 border-transparent hover:text-zinc-200 hover:bg-zinc-900/60"
             }`}
             title="Documentação Técnica (README)"
           >
@@ -768,7 +753,7 @@ export default function App() {
 
         {/* Simple collapse indication / settings at bottom if wanted */}
         <div className={`p-3 flex justify-center font-mono text-[8px] tracking-widest shrink-0 mt-auto truncate w-full border-t ${
-          isDarkMode ? "border-zinc-900 text-zinc-600" : "border-zinc-200 text-zinc-400"
+          "border-zinc-900 text-zinc-600"
         }`}>
           {isSidebarOpen ? "TERMINAL MESTRE" : "TM"}
         </div>
@@ -778,11 +763,11 @@ export default function App() {
       <div className="flex-1 flex flex-col h-screen overflow-y-auto overflow-x-hidden p-4 md:p-6 w-full">
         {/* Immersive HUD Header Section */}
         <header className={`flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 border-b pb-4 mb-6 shrink-0 relative ${
-          isDarkMode ? "border-zinc-900" : "border-zinc-200"
+          "border-zinc-900"
         }`}>
           <div className="flex items-center gap-4">
             <div className={`w-11 h-11 border border-[var(--brand-border)] rounded-full flex items-center justify-center shadow-[0_0_15px_var(--brand-glow-strong)] ${
-              isDarkMode ? "bg-slate-950" : "bg-white"
+              "bg-slate-950"
             }`}>
               <div
                 className={`w-4-dot w-4 h-4 rounded-full ${systemState?.systemActive ? (systemState?.installer?.status === "installing" ? "animate-ping bg-yellow-400" : "animate-pulse bg-[var(--brand-light)]") : "bg-zinc-600"}`}
@@ -792,7 +777,7 @@ export default function App() {
               <div className="flex items-center gap-2">
                 <h1
                   id="main_title"
-                  className={`text-2xl font-bold tracking-widest font-sans flex items-center gap-1.5 ${isDarkMode ? "text-white" : "text-zinc-900"}`}
+                  className={`text-2xl font-bold tracking-widest font-sans flex items-center gap-1.5 ${"text-white"}`}
                 >
                   JARVIS{" "}
                   <span className="text-[var(--brand-light)]">CHRIST</span>
@@ -816,7 +801,7 @@ export default function App() {
                 target="_blank"
                 rel="noreferrer"
                 className={`w-8 h-8 rounded-full border flex items-center justify-center hover:bg-[var(--brand-glow)] hover:border-[var(--brand-border)] hover:text-[var(--brand-light)] transition-all group ${
-                  isDarkMode ? "border-zinc-800 bg-zinc-900" : "border-zinc-250 bg-white shadow-sm"
+                  "border-zinc-800 bg-zinc-900"
                 }`}
                 title="Abrir n8n (Porta 5678)"
               >
@@ -827,7 +812,7 @@ export default function App() {
                 target="_blank"
                 rel="noreferrer"
                 className={`w-8 h-8 rounded-full border flex items-center justify-center hover:bg-[var(--brand-glow)] hover:border-[var(--brand-border)] hover:text-[var(--brand-light)] transition-all group ${
-                  isDarkMode ? "border-zinc-800 bg-zinc-900" : "border-zinc-250 bg-white shadow-sm"
+                  "border-zinc-800 bg-zinc-900"
                 }`}
                 title="Abrir Home Assistant (Porta 8123)"
               >
@@ -838,7 +823,7 @@ export default function App() {
                 target="_blank"
                 rel="noreferrer"
                 className={`w-8 h-8 rounded-full border flex items-center justify-center hover:bg-[var(--brand-glow)] hover:border-[var(--brand-border)] hover:text-[var(--brand-light)] transition-all group ${
-                  isDarkMode ? "border-zinc-800 bg-zinc-900" : "border-zinc-250 bg-white shadow-sm"
+                  "border-zinc-800 bg-zinc-900"
                 }`}
                 title="Abrir JARVIS Web/Dev (Porta 3000)"
               >
@@ -846,13 +831,13 @@ export default function App() {
               </a>
             </div>
 
-            <div className={`border-l pl-4 text-right font-mono ${isDarkMode ? "border-zinc-800" : "border-zinc-250"}`}>
+            <div className={`border-l pl-4 text-right font-mono ${"border-zinc-800"}`}>
               <span className="text-[9px] text-zinc-500 uppercase block tracking-wider">
                 Servidor {hardwareStats?.cpu || "Desktop Ryzen 7"}
               </span>
               <div
                 className={`flex items-center gap-1.5 justify-end text-xs ${systemState?.systemActive ? "opacity-100" : "opacity-30"} ${
-                  isDarkMode ? "text-white" : "text-zinc-800 font-semibold"
+                  "text-white"
                 }`}
               >
                 <span
@@ -862,21 +847,21 @@ export default function App() {
                 {systemState?.systemActive ? "ATIVO" : "INATIVO"}
               </div>
             </div>
-            <div className={`border-l pl-4 text-right font-mono ${isDarkMode ? "border-zinc-800" : "border-zinc-250"}`}>
+            <div className={`border-l pl-4 text-right font-mono ${"border-zinc-800"}`}>
               <span className="text-[9px] text-zinc-500 uppercase block tracking-wider">
                 Estação Horária
               </span>
               <span
                 id="digital_clock"
                 className={`text-sm font-semibold tracking-widest flex items-center gap-1 ${
-                  isDarkMode ? "text-white" : "text-zinc-800"
+                  "text-white"
                 }`}
               >
                 <Clock className="h-3 w-3 text-[var(--brand-light)]" />
                 {timeStr}
               </span>
             </div>
-            <div className={`border-l pl-4 flex items-center justify-center ${isDarkMode ? "border-zinc-800" : "border-zinc-250"}`}>
+            <div className={`border-l pl-4 flex items-center justify-center ${"border-zinc-800"}`}>
               <button
                 onClick={async () => {
                   try {
@@ -889,9 +874,7 @@ export default function App() {
                 className={`px-4 py-2 border rounded font-mono text-xs font-bold uppercase tracking-widest transition-all
                   ${
                     systemState?.systemActive
-                      ? isDarkMode 
-                        ? "bg-zinc-900 border-zinc-700 text-yellow-500 hover:bg-zinc-800"
-                        : "bg-yellow-50 border-yellow-200 text-yellow-650 hover:bg-yellow-100"
+                      ? "bg-zinc-900 border-zinc-700 text-yellow-500 hover:bg-zinc-800"
                       : "bg-[var(--brand-primary)] border-[var(--brand-light)] text-white hover:bg-[var(--brand-light)] hover:text-black shadow-[0_0_10px_var(--brand-glow-strong)]"
                   }
                 `}
@@ -989,12 +972,11 @@ export default function App() {
                 {/* Column 1 & 2: Main AI Voice Terminal Interface */}
                 <div className="xl:col-span-3 space-y-6">
                   <div className={`p-1 rounded-xl border transition-colors ${
-                    isDarkMode ? "bg-zinc-950/20 border-zinc-900" : "bg-white border-zinc-200 shadow-sm"
+                    "bg-zinc-950/20 border-zinc-900"
                   }`}>
                     <JarvisAssistant
                       conversations={systemState?.conversations || []}
                       onSendMessage={handleSendMessage}
-                      isDarkMode={isDarkMode}
                     />
                   </div>
 
@@ -2090,7 +2072,6 @@ export default function App() {
                     currentTheme={currentTheme}
                     onChangeTheme={changeTheme}
                     configTab={settingsTab}
-                    isDarkMode={isDarkMode}
                   />
                 )}
 
