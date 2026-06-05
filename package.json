@@ -13,7 +13,7 @@
     "start": "node dist/server.cjs",
     "desktop": "npm run build && electron .",
     "dist": "npm run build && electron-builder",
-    "clean": "rm -rf dist server.js release",
+    "clean": "npx -y rimraf dist server.js release",
     "lint": "tsc --noEmit"
   },
   "build": {

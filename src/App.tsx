@@ -115,9 +115,6 @@ export default function App() {
   >("general");
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const isDarkMode = true;
-  const toggleDarkMode = () => {
-    // Light mode disabled
-  };
   const [systemState, setSystemState] = useState<any>(null);
   const [hardwareStats, setHardwareStats] = useState<any>(null);
   const [timeStr, setTimeStr] = useState("");
@@ -2094,7 +2091,6 @@ export default function App() {
                     onChangeTheme={changeTheme}
                     configTab={settingsTab}
                     isDarkMode={isDarkMode}
-                    onToggleDarkMode={toggleDarkMode}
                   />
                 )}
 
