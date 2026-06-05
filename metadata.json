@@ -1,8 +1,4 @@
 {
   "name": "JARVIS System Suite",
-  "description": "Painel de Controle e Instalador Automatizado para o Ecossistema JARVIS (Ollama, Docker, Obsidian, Home Assistant). Roda o instalador dos containers, configura repositórios locais e manuseia a inteligência artificial.",
-  "requestFramePermissions": ["microphone"],
-  "majorCapabilities": [
-    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
-  ]
+  "description": "Painel de Controle e Instalador Automatizado para o Ecossistema JARVIS (Ollama, Docker, Obsidian, Home Assistant). Roda o instalador dos containers, configura repositórios locais e manuseia a inteligência artificial."
 }

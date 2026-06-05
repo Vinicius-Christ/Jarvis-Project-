@@ -1648,13 +1648,13 @@ let updaterState = {
   remoteVersion: "5.0.0",
   remoteMessage: "",
   logs: [] as string[],
-  githubRepo: "viniciusc-castro09/jarvis-system-suite",
+  githubRepo: "Vinicius-Christ/Jarvis-Project-",
   githubToken: ""
 };
 
 // If repo is configured in db, load it
 if (!(db as any).githubRepo) {
-  (db as any).githubRepo = "viniciusc-castro09/jarvis-system-suite";
+  (db as any).githubRepo = "Vinicius-Christ/Jarvis-Project-";
   saveDB();
 } else {
   updaterState.githubRepo = (db as any).githubRepo;
@@ -1691,7 +1691,7 @@ function copyFolderRecursiveSync(src: string, dest: string) {
 }
 
 app.get("/api/system/update/status", (req, res) => {
-  updaterState.githubRepo = (db as any).githubRepo || "viniciusc-castro09/jarvis-system-suite";
+  updaterState.githubRepo = (db as any).githubRepo || "Vinicius-Christ/Jarvis-Project-";
   updaterState.githubToken = (db as any).githubToken || "";
   res.json(updaterState);
 });

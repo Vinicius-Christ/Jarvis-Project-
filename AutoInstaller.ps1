@@ -35,8 +35,8 @@ Write-Host "Instalando Ollama..." -ForegroundColor Cyan
 winget install Ollama.Ollama --silent --accept-package-agreements
 
 # 4. Criar estrutura do Obsidian Vault
-Write-Host "[3/5] Estruturando Obsidian Vault em C:\\jarvis-vault..." -ForegroundColor Yellow
-$vaultPath = "C:\\jarvis-vault"
+Write-Host "[3/5] Estruturando Obsidian Vault em .\jarvis-vault..." -ForegroundColor Yellow
+$vaultPath = ".\jarvis-vault"
 $dirs = @("perfil", "agenda", "financas", "casa", "conversas", "aprendizados", "arquivos-indexados", "rotinas-pc")
 
 if (-not (Test-Path $vaultPath)) {
@@ -47,7 +47,7 @@ foreach ($dir in $dirs) {
     $subPath = Join-Path $vaultPath $dir
     if (-not (Test-Path $subPath)) {
         New-Item -ItemType Directory -Force -Path $subPath | Out-Null
-        Write-Host "Criada pasta: C:\\jarvis-vault\\$dir" -ForegroundColor Gray
+        Write-Host "Criada pasta: .\jarvis-vault\$dir" -ForegroundColor Gray
     }
 }
 
@@ -62,7 +62,7 @@ Foco atual: Automação residencial de luzes e ar condicionado, e controle finan
 Modelos: Llama 3.1 (8B) quantizado em 4-bit para comandos gerais, Phi-3 Mini para português avançado.
 Hardware: Máquina Server (RTX 4070 Ti 12GB VRAM para processar CUDA offline).
 "@
-Set-Content -Path "C:\\jarvis-vault\\perfil\\usuario.md" -Value $profileContent
+Set-Content -Path ".\jarvis-vault\perfil\usuario.md" -Value $profileContent
 
 # Criar notas financeiras iniciais para o RAG ler
 $financasContent = @"
@@ -78,7 +78,7 @@ $financasContent = @"
 - Educação: R$ 300,00
 - Transporte: R$ 300,00
 "@
-Set-Content -Path "C:\\jarvis-vault\\financas\\metas.md" -Value $financasContent
+Set-Content -Path ".\jarvis-vault\financas\metas.md" -Value $financasContent
 
 # Criar notas de automação de PC iniciais
 $rotinasContent = @"
@@ -88,7 +88,7 @@ $rotinasContent = @"
 - **Ambiente de Estudos**: Notion + Chrome (Playlist Lo-Fi Beats no Spotify) + PDF Reader carregado
 - **Modo Jogos**: Steam Launcher + Discord Client + MSI Afterburner ventiladores ativos
 "@
-Set-Content -Path "C:\\jarvis-vault\\rotinas-pc\\estudos.md" -Value $rotinasContent
+Set-Content -Path ".\jarvis-vault\rotinas-pc\estudos.md" -Value $rotinasContent
 
 # Criar notas da casa inteligente (Home Assistant)
 $casaContent = @"
@@ -99,7 +99,7 @@ $casaContent = @"
 - Ar-Condicionado (Split Wi-Fi de 12000 BTUs)
 - Robô Aspirador (Smart Vacuum operando na base)
 "@
-Set-Content -Path "C:\\jarvis-vault\\casa\\dispositivos.md" -Value $casaContent
+Set-Content -Path ".\jarvis-vault\casa\dispositivos.md" -Value $casaContent
 
 # 5. Baixar modelos locais no Ollama
 Write-Host "[4/5] Inicializando serviço do Ollama e baixando modelos locais na placa RTX 4070 Ti..." -ForegroundColor Yellow

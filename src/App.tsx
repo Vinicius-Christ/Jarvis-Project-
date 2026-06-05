@@ -28,8 +28,6 @@ import {
   Settings,
   Workflow,
   Code,
-  Sun,
-  Moon,
 } from "lucide-react";
 import {
   ResponsiveContainer,
@@ -134,7 +132,7 @@ export default function App() {
     remoteCommit: "",
     remoteMessage: "",
     logs: [],
-    githubRepo: "viniciusc-castro09/jarvis-system-suite",
+    githubRepo: "Vinicius-Christ/Jarvis-Project-",
   });
 
   const [financeForm, setFinanceForm] = useState({
