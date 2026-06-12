@@ -153,7 +153,7 @@ function InstallerLoadingHUD({ progress, modules }: { progress: number; modules:
           {/* Model registries and details */}
           <div className="space-y-1 text-[9px] leading-snug">
             <div className="flex justify-between items-center bg-black/40 px-2 py-0.5 rounded border border-zinc-900/50">
-              <span>Llama 3.1 (8B)</span>
+              <span>Phi-3 Mini (3.8B)</span>
               <span className={modules.ollama.progress >= 80 ? "text-lime-400" : "text-zinc-500"}>
                 {modules.ollama.progress >= 80 ? "Carregado (4.7GB)" : modules.ollama.status === "running" ? `${Math.min(100, Math.round(modules.ollama.progress * 1.5))}%` : "Pendente"}
               </span>
@@ -382,8 +382,8 @@ Write-Host "[4/5] Inicializando serviço do Ollama e baixando modelos locais..."
 Start-Process -FilePath "ollama" -ArgumentList "serve" -NoNewWindow -PassThru
 Start-Sleep -Seconds 5
 
-Write-Host "Baixando modelo principal Llama 3.1 (8B) Q4..." -ForegroundColor Cyan
-ollama pull llama3.1
+Write-Host "Baixando modelo principal Phi-3 Mini (3.8B) Q4..." -ForegroundColor Cyan
+ollama pull phi3
 
 Write-Host "Baixando modelo de Embeddings para RAG (nomic-embed-text)..." -ForegroundColor Cyan
 ollama pull nomic-embed-text

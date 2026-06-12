@@ -284,7 +284,7 @@ export default function App() {
         body: JSON.stringify({
           message: text,
           file,
-          model: model || "llama3.1",
+          model: model || "phi3",
         }),
       });
       const data = await res.json();
@@ -1222,7 +1222,7 @@ export default function App() {
 
                       <div className="flex items-center justify-between text-xs">
                         <span className="text-zinc-400">
-                          3. Modelos Llama 3.1
+                          3. Modelos Phi-3 Mini
                         </span>
                         <span
                           className={
@@ -2244,7 +2244,7 @@ export default function App() {
                         IA funcionar:
                         <br />
                         <code className="bg-zinc-950 px-1 rounded text-[var(--brand-light)] text-[10px]">
-                          ollama pull llama3.1
+                          ollama pull phi3
                         </code>{" "}
                         (Motor principal - Rápido)
                         <br />
@@ -2310,7 +2310,7 @@ export default function App() {
                           : "12GB VRAM"}
                         )
                       </strong>
-                      . Isso possibilita rodar o modelo Llama 3.1 (8B) com tempo
+                      . Isso possibilita rodar o modelo Phi-3 Mini (3.8B) com tempo
                       de resposta inferior a <strong>800ms por token</strong>{" "}
                       localmente.
                     </p>
@@ -2367,7 +2367,7 @@ export default function App() {
                           de agenda e de perfis no local.
                         </li>
                         <li>
-                          Baixa e carrega o Llama 3.1 (8B) e nomic-embed-text na
+                          Baixa e carrega o Phi-3 Mini (3.8B) e nomic-embed-text na
                           GPU via CUDA.
                         </li>
                       </ul>

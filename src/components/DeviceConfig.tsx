@@ -140,7 +140,7 @@ export default function DeviceConfig({ devices, onRefresh, currentTheme, onChang
   // States for testing Ollama connection
   const [ollamaStatus, setOllamaStatus] = useState<"idle" | "testing" | "online">("online");
   const [ollamaUrl, setOllamaUrl] = useState("http://192.168.1.104:11434");
-  const [ollamaModel, setOllamaModel] = useState("llama3.1");
+  const [ollamaModel, setOllamaModel] = useState("phi3");
 
   const deviceTypes = [
     "Lâmpada Inteligente (RGB/Dimmer)",
@@ -472,9 +472,9 @@ export default function DeviceConfig({ devices, onRefresh, currentTheme, onChang
                   onChange={(e) => setOllamaModel(e.target.value)}
                   className="w-full bg-zinc-950 border border-zinc-800 text-zinc-300 font-mono text-xs p-1.5 rounded focus:outline-none focus:border-[var(--brand-primary)]"
                 >
-                  <option value="llama3.1">Llama 3.1 (8B) Q4 - 4.7GB</option>
+                  
                   <option value="phi3">Phi-3 Mini (3.8B) - 2.4GB</option>
-                  <option value="llama3.1">Llama 3.1 (8B) GGUF - 4.7GB</option>
+                  
                 </select>
               </div>
               <div>
@@ -491,7 +491,7 @@ export default function DeviceConfig({ devices, onRefresh, currentTheme, onChang
                 <span className="h-2 w-2 rounded-full bg-emerald-400 animate-ping mt-1 shrink-0"></span>
                 <div>
                   <strong className="block">OLLAMA DEPLOY ONLINE:</strong>
-                  Conexão estabelecida com sucesso. Llama 3.1 carregado no cache de hardware. Tempo médio de resposta: 42ms/token.
+                  Conexão estabelecida com sucesso. Phi-3 Mini carregado no cache de hardware. Tempo médio de resposta: 42ms/token.
                 </div>
               </div>
             )}

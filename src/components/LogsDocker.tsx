@@ -42,7 +42,7 @@ export default function LogsDocker() {
   });
 
   const workerNodesList = [
-    { id: "agent_coder", name: "Agente SSH (Coder)", desc: "Worker rodando Llama 3.1 isolado focado em comandos SSH no host.", limit: "3.5GB VRAM" },
+    { id: "agent_coder", name: "Agente SSH (Coder)", desc: "Worker rodando Phi-3 Mini isolado focado em comandos SSH no host.", limit: "3.5GB VRAM" },
     { id: "agent_obsidian", name: "Agente Leitor (Vault)", desc: "Worker lendo arquivos .md do Obsidian via integração n8n.", limit: "1.5GB VRAM" },
     { id: "agent_research", name: "Agente Deep Research", desc: "Varredura DuckDuckGo via CLI.", limit: "2.5GB VRAM" }
   ];

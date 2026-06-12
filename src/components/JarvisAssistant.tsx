@@ -42,7 +42,7 @@ interface JarvisAssistantProps {
 export default function JarvisAssistant({ conversations, onSendMessage, isDarkMode = true }: JarvisAssistantProps) {
   const [inputText, setInputText] = useState("");
   const [appState, setAppState] = useState<"inactive" | "listening" | "processing" | "speaking">("inactive");
-  const [modelType, setModelType] = useState("llama3.1");
+  const [modelType, setModelType] = useState("phi3");
   const [attachedFile, setAttachedFile] = useState<{ name: string; type: string; size: number; content?: string } | null>(null);
   const [showNotePopup, setShowNotePopup] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -352,17 +352,7 @@ export default function JarvisAssistant({ conversations, onSendMessage, isDarkMo
     };
   }, []);
 
-  const speakResponse = (text: string) => {
-    if (!voiceEnabled) return;
-    
-    // Clean up XML commands tags before text to speech
-    const cleanText = text.replace(/<command[^>]*\/>/g, "").trim();
-    if (!cleanText) return;
-
-    window.speechSynthesis.cancel();
-    
-    setAppState("speaking");
-    
+  const speakLocalResponse = (cleanText: string) => {
     const utterance = new SpeechSynthesisUtterance(cleanText);
     utterance.lang = "pt-BR";
     
@@ -387,6 +377,58 @@ export default function JarvisAssistant({ conversations, onSendMessage, isDarkMo
     };
 
     window.speechSynthesis.speak(utterance);
+  };
+
+  const speakResponse = async (text: string) => {
+    if (!voiceEnabled) return;
+    
+    // Clean up XML commands tags before text to speech
+    const cleanText = text.replace(/<command[^>]*\/>/g, "").trim();
+    if (!cleanText) return;
+
+    window.speechSynthesis.cancel();
+    setAppState("speaking");
+
+    try {
+      // If user selected premium_api, try use elevenlabs / openai
+      if (engineType === "premium_api") {
+        // Map persona to ElevenLabs standard voice ids
+        let voiceId = "21m00Tcm4TlvDq8ikWAM"; // default ElevenLabs 
+        if (activePersona === "jarvis") voiceId = "bVMeCyTHy58xNoL34h3p";
+        else if (activePersona === "friday") voiceId = "EXAVITQu4vr4xnSDxMaL";
+        else if (activePersona === "glados") voiceId = "LcfcDJNUP1GQjkvn1xUw";
+        else if (activePersona === "hal9000") voiceId = "N2lVS1w4EtoT3dr4eOWO";
+
+        const res = await fetch(getServerUrl() + "/api/tts", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ 
+            text: cleanText, 
+            voiceId
+          })
+        });
+
+        if (res.ok) {
+          const blob = await res.blob();
+          const url = URL.createObjectURL(blob);
+          const audio = new Audio(url);
+          audio.onended = () => {
+             setAppState("inactive");
+             URL.revokeObjectURL(url);
+          };
+          audio.onerror = () => {
+             speakLocalResponse(cleanText);
+          };
+          audio.play().catch(() => speakLocalResponse(cleanText));
+          return;
+        }
+      }
+      
+      // Fallback
+      speakLocalResponse(cleanText);
+    } catch (err) {
+       speakLocalResponse(cleanText);
+    }
   };
 
   const handleMicToggle = () => {
@@ -464,9 +506,9 @@ export default function JarvisAssistant({ conversations, onSendMessage, isDarkMo
                 : "bg-zinc-50 border-zinc-200 text-zinc-700"
             }`}
           >
-            <option value="llama3.1">Llama 3.1 (8B) Q4 (Fast)</option>
+            
             <option value="phi3">Phi-3 Mini (3.8B)</option>
-            <option value="llama3.1">Llama 3.1 8B (Heavy)</option>
+            
           </select>
         </div>
 
@@ -581,7 +623,7 @@ export default function JarvisAssistant({ conversations, onSendMessage, isDarkMo
               ? "text-zinc-400 bg-zinc-950 border-zinc-800" 
               : "text-zinc-650 bg-white border-zinc-200"
           }`}>
-            {modelType === "llama3.1" ? "LOCAL_MODEL=Llama 3.1 (8B)-Q4" : modelType === "phi3" ? "LOCAL_MODEL=Phi3-Mini" : "LOCAL_MODEL=Llama-3.1-8B"}
+            "LOCAL_MODEL=Phi3-Mini"
           </span>
         </div>
 
@@ -672,7 +714,7 @@ export default function JarvisAssistant({ conversations, onSendMessage, isDarkMo
                 <div className="space-y-1">
                   <span className={`font-semibold font-sans block ${isDarkMode ? "text-white" : "text-zinc-900"}`}>Dica de Otimização Offline</span>
                   <p className={`text-[11px] leading-relaxed font-sans ${isDarkMode ? "text-zinc-300" : "text-zinc-700"}`}>
-                    Anexos de documentos (<strong>PDF</strong>, <strong>DOCX</strong>, <strong>Excel</strong>) funcionam idealmente com a inteligência <strong className={isDarkMode ? "text-white" : "text-zinc-950"}>Llama 3.1 8B (Heavy)</strong>. Ela possui a melhor capacidade semântica para ler tabelas, faturas de gastos e cronogramas de agenda offline!
+                    Anexos de documentos (<strong>PDF</strong>, <strong>DOCX</strong>, <strong>Excel</strong>) funcionam idealmente com a inteligência <strong className={isDarkMode ? "text-white" : "text-zinc-950"}>Phi-3 Mini (Heavy)</strong>. Ela possui a melhor capacidade semântica para ler tabelas, faturas de gastos e cronogramas de agenda offline!
                   </p>
                 </div>
               </div>
@@ -879,16 +921,16 @@ export default function JarvisAssistant({ conversations, onSendMessage, isDarkMo
                 </button>
                 <button
                   type="button"
-                  onClick={() => setEngineType("piper_local")}
+                  onClick={() => setEngineType("premium_api")}
                   className={`py-2 px-3 text-[10px] font-mono rounded-lg border transition cursor-pointer text-center ${
-                    engineType === "piper_local"
-                      ? "bg-[var(--brand-primary)]/10 border-[var(--brand-primary)] text-[var(--brand-light)] font-bold"
+                    engineType === "premium_api"
+                      ? "bg-[var(--brand-primary)]/10 border-[var(--brand-primary)] text-[var(--brand-light)] font-bold shadow-[0_0_10px_var(--brand-glow)]"
                       : isDarkMode
                         ? "bg-zinc-950 border border-zinc-900 text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900"
                         : "bg-zinc-50 border border-zinc-200 text-zinc-650 hover:text-zinc-900 hover:bg-zinc-100"
                   }`}
                 >
-                  Piper Local TTS (Holo)
+                  ElevenLabs / OpenAI (Premium)
                 </button>
               </div>
 
