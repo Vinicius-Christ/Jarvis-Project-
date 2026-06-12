@@ -6,7 +6,11 @@ export default function TokensManager() {
   const [tokens, setTokens] = useState({
     githubToken: "",
     haToken: "",
-    telegramToken: ""
+    telegramToken: "",
+    elevenlabsToken: "",
+    openaiToken: "",
+    webUsername: "",
+    webPassword: ""
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -84,10 +88,41 @@ export default function TokensManager() {
         {/* Sessão: Infraestrutura Node */}
         <div className="space-y-4">
           <h3 className="text-[10px] uppercase font-bold text-zinc-500 tracking-widest flex items-center gap-1.5 border-b border-zinc-805 pb-2">
-            <ShieldCheck className="h-3.5 w-3.5" /> Core Infraestrutura Local
+            <ShieldCheck className="h-3.5 w-3.5" /> Core Infraestrutura Local & Web
           </h3>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             
+            <div className="bg-zinc-900/40 border border-zinc-800 p-4 rounded-xl lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4 border-l-4 border-l-rose-500">
+              <div className="md:col-span-2">
+                <label className="block text-[11px] uppercase font-bold text-rose-400 font-mono mb-1.5 flex items-center gap-1.5">
+                  <ShieldCheck className="h-4 w-4" /> Autenticação Web Externa (Basic Auth)
+                </label>
+                <p className="text-[10px] text-zinc-500 mb-1 leading-relaxed">Pede usuário e senha sempre que acessar a interface web remotamente (Cybersegurança). Deixe em branco se for usar apenas na própria rede interna segura.</p>
+              </div>
+              <div>
+                <input
+                  type="text"
+                  name="webUsername"
+                  autoComplete="new-password"
+                  value={tokens?.webUsername || ""}
+                  onChange={handleChange}
+                  placeholder="Nome de Usuário"
+                  className="w-full bg-black/60 border border-zinc-800 text-rose-300 font-mono text-xs px-3 py-2 rounded focus:outline-none focus:border-rose-500 transition-colors"
+                />
+              </div>
+              <div>
+                <input
+                  type="password"
+                  name="webPassword"
+                  autoComplete="new-password"
+                  value={tokens?.webPassword || ""}
+                  onChange={handleChange}
+                  placeholder="Senha Mestra"
+                  className="w-full bg-black/60 border border-zinc-800 text-rose-300 font-mono text-xs px-3 py-2 rounded focus:outline-none focus:border-rose-500 transition-colors"
+                />
+              </div>
+            </div>
+
             <div className="bg-zinc-900/40 border border-zinc-800 p-4 rounded-xl">
               <label className="block text-[11px] uppercase font-bold text-zinc-300 font-mono mb-1.5">IP do Servidor Backend Linux</label>
               <p className="text-[10px] text-zinc-500 mb-3 leading-relaxed">Endereço do notebook Linux rodando o motor. Se não preenchido, tenta conectar via localhost.</p>
@@ -151,6 +186,32 @@ export default function TokensManager() {
                 onChange={handleChange}
                 placeholder="123456789:ABCDefGHI_jkl12..."
                 className="w-full bg-black/60 border border-zinc-800 text-emerald-400 font-mono text-xs px-3 py-2 rounded focus:outline-none focus:border-cyan-500 transition-all duration-300 hover:border-zinc-600 focus:shadow-[0_0_15px_var(--brand-glow)]"
+              />
+            </div>
+
+            <div className="bg-zinc-900/40 border border-zinc-800 p-4 rounded-xl">
+              <label className="block text-[11px] uppercase font-bold text-rose-400 font-mono mb-1.5">ElevenLabs API Key (Opcional - Vozes Naturais)</label>
+              <p className="text-[10px] text-zinc-500 mb-3 leading-relaxed">Deixa as respostas e leituras de notificações do sistema e da assistente em PT-BR extremamente realistas. A voz sintética do Windows será o fallback.</p>
+              <input
+                type="password"
+                name="elevenlabsToken"
+                value={tokens.elevenlabsToken}
+                onChange={handleChange}
+                placeholder="sk_xxxxxxxxxxxxxxxxxxxx..."
+                className="w-full bg-black/60 border border-zinc-800 text-emerald-400 font-mono text-xs px-3 py-2 rounded focus:outline-none focus:border-rose-500 transition-all duration-300 hover:border-zinc-600 focus:shadow-[0_0_15px_rgba(244,63,94,0.3)]"
+              />
+            </div>
+
+            <div className="bg-zinc-900/40 border border-zinc-800 p-4 rounded-xl lg:col-span-2">
+              <label className="block text-[11px] uppercase font-bold text-emerald-400 font-mono mb-1.5">OpenAI API Key (Opcional - Alternativa Voz TTS)</label>
+              <p className="text-[10px] text-zinc-500 mb-3 leading-relaxed">Opcionalmente, pode-se utilizar a infraestrutura TTS da OpenAI em vez da sintética do Windows (se o ElevenLabs não estiver configurado).</p>
+              <input
+                type="password"
+                name="openaiToken"
+                value={tokens.openaiToken}
+                onChange={handleChange}
+                placeholder="sk-xxxxxxxxxxxxxxxxxxxx..."
+                className="w-full bg-black/60 border border-zinc-800 text-emerald-400 font-mono text-xs px-3 py-2 rounded focus:outline-none focus:border-emerald-500 transition-all duration-300 hover:border-zinc-600 focus:shadow-[0_0_15px_rgba(16,185,129,0.3)]"
               />
             </div>
 

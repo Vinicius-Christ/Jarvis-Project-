@@ -42,7 +42,6 @@ interface JarvisAssistantProps {
 export default function JarvisAssistant({ conversations, onSendMessage, isDarkMode = true }: JarvisAssistantProps) {
   const [inputText, setInputText] = useState("");
   const [appState, setAppState] = useState<"inactive" | "listening" | "processing" | "speaking">("inactive");
-  const [modelType, setModelType] = useState("phi3");
   const [attachedFile, setAttachedFile] = useState<{ name: string; type: string; size: number; content?: string } | null>(null);
   const [showNotePopup, setShowNotePopup] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -200,7 +199,7 @@ export default function JarvisAssistant({ conversations, onSendMessage, isDarkMo
         if (transcript.trim()) {
           setAppState("processing");
           const startLlm = Date.now();
-          const reply = await onSendMessage(transcript, undefined, modelType);
+          const reply = await onSendMessage(transcript, undefined, "phi3");
           const endLlm = Date.now();
 
           const sttLatency = Math.floor(Math.random() * 15) + 10; // 10-25ms
@@ -226,7 +225,7 @@ export default function JarvisAssistant({ conversations, onSendMessage, isDarkMo
 
       recognitionRef.current = rec;
     }
-  }, [onSendMessage, modelType, selectedVoiceURI, pitch, rate, voiceVolume]);
+  }, [onSendMessage, selectedVoiceURI, pitch, rate, voiceVolume]);
 
   // Scroll to bottom of conversation
   useEffect(() => {
@@ -472,7 +471,7 @@ export default function JarvisAssistant({ conversations, onSendMessage, isDarkMo
     setAppState("processing");
     
     const startLlm = Date.now();
-    const res = await onSendMessage(query, fileToSend || undefined, modelType);
+    const res = await onSendMessage(query, fileToSend || undefined, "phi3");
     const endLlm = Date.now();
 
     const sttLatency = 0; // Text input has no speech recording cost
@@ -497,19 +496,13 @@ export default function JarvisAssistant({ conversations, onSendMessage, isDarkMo
             <Cpu className="h-3.5 w-3.5 text-[var(--brand-light)]" />
             GPU CUDA VRAM
           </span>
-          <select
-            value={modelType}
-            onChange={(e) => setModelType(e.target.value)}
-            className={`border font-mono text-[10px] px-2 py-1 rounded focus:outline-none focus:border-[var(--brand-primary)] transition-all ${
-              isDarkMode 
-                ? "bg-zinc-950 border-zinc-800 text-zinc-400" 
-                : "bg-zinc-50 border-zinc-200 text-zinc-700"
-            }`}
-          >
-            
-            <option value="phi3">Phi-3 Mini (3.8B)</option>
-            
-          </select>
+          <div className={`px-2 py-0.5 rounded font-mono text-[9px] uppercase tracking-wider border transition-colors ${
+            isDarkMode 
+              ? "bg-zinc-950/60 border-zinc-800 text-[var(--brand-primary)]" 
+              : "bg-zinc-50 border-zinc-200 text-[var(--brand-primary)] font-bold"
+          }`}>
+            Phi-3 Mini Local
+          </div>
         </div>
 
         {/* Visual Sphere matrix */}

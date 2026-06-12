@@ -168,3 +168,95 @@ Para que o JARVIS se comunique fisicamente com a sua casa, seu motor local de nu
 5. Copie a chave fornecida (normalmente começa com `gsk_...`) e cole no sistema. Essa chave pode ser deixada vazia sem problema caso você recuse dependência da nuvem até mesmo para fluxos do N8N, e opte somente por fluxos offline com Ollama.
 
 Parabéns pela implantação primária do JARVIS!
+
+---
+
+## 🐧 PARTE 5: TUTORIAL DE INSTALAÇÃO NO LINUX MINT (PASSO A PASSO DETALHADO)
+
+Como você pediu, aqui está o manual **extremamente detalhado e mastigado** para rodar a stack perfeitamente no Linux Mint. A vantagem do Linux nativo é aproveitar o driver da NVIDIA com força total para a Inteligência Artificial e Containers.
+
+### 1. Atualização Básica do Mint e Instalação de Ferramentas Base
+Abra o terminal (Ctrl + Alt + T) e rode os comandos um por um:
+```bash
+sudo apt update && sudo apt upgrade -y
+sudo apt install -y curl wget git build-essential htop software-properties-common
+```
+
+### 2. Instalando o Docker e o Docker Compose
+O Docker no Linux Mint é idêntico ao do Ubuntu. Para instalar a versão oficial mais recente:
+```bash
+# Adicionar a chave GPG oficial do Docker
+sudo install -m 0755 -d /etc/apt/keyrings
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+sudo chmod a+r /etc/apt/keyrings/docker.gpg
+
+# Adicionar repositório na sources.list (O Mint é base Ubuntu)
+echo \
+  "deb [arch="$(dpkg --print-architecture)" signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
+  "$(. /etc/os-release && echo "$UBUNTU_CODENAME")" stable" | \
+  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+# Instalar as engines
+sudo apt update
+sudo apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+
+# Adicionar o seu usuário ao grupo Docker (evita precisar de sudo toda hora)
+sudo usermod -aG docker $USER
+```
+***Aviso:** Após esse passo, você precisará dar "Log Out" (sair do seu usuário) e logar de novo para as permissões do Docker aplicarem.*
+
+### 3. Instalando e Configurando o NVIDIA Container Toolkit
+ISSO É VITAL: Permite que os containers (como o Ollama ou ChromaDB) usem a placa de vídeo.
+Certifique-se que o driver da NVIDIA está instalado (`nvidia-smi` deve rodar no terminal).
+```bash
+# Configurar repositório da Nvidia no Mint
+curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey | sudo gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg \
+  && curl -s -L https://nvidia.github.io/libnvidia-container/stable/deb/nvidia-container-toolkit.list | \
+    sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://#g' | \
+    sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list
+
+sudo apt update
+sudo apt install -y nvidia-container-toolkit
+sudo nvidia-ctk runtime configure --runtime=docker
+sudo systemctl restart docker
+```
+
+### 4. Instalar o Node.js e Subir o Ecossistema do JARVIS
+No Mint, o melhor jeito de instalar o Node é pelo NVM (Node Version Manager):
+```bash
+# Instalar NVM
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+
+# (Feche e abra o terminal de novo ou rode source ~/.bashrc)
+source ~/.bashrc
+
+# Instalar versão LTS estável e marcar de uso
+nvm install 20
+nvm use 20
+```
+
+**Pronto para rodar o Jarvis:**
+1. Extraia sua pasta `jarvis-system-suite` e entre nela pelo terminal:
+   ```bash
+   cd ~/Downloads/jarvis-system-suite
+   ```
+2. Faça a instalação base de dependências do servidor central:
+   ```bash
+   npm install
+   ```
+3. Suba seus bancos de dado, Chroma e n8n (em background detatch):
+   ```bash
+   docker compose up -d
+   ```
+4. Por fim, chame o servidor principal e o front do Jarvis:
+   ```bash
+   npm run dev
+   ```
+Abra o seu navegador (Firefox, Chrome, ou Edge no Mint) e acesse `http://localhost:3000`.
+
+### 5. Segurança Web (Acessando fora de casa a partir do celular)
+Caso planeje usar o Jarvis do 4G na rua acessando a sua máquina ou subindo os arquivos para a Cloud:
+1. Ao abrir o painel JARVIS, vá em **Configurações > "Senhas & Tokens"**.
+2. Na seção recém acoplada **"Autenticação Web Externa (Basic Auth)"**, cadastre um Nome de Usuário e uma Senha Forte.
+3. Ao aplicar as Configurações, a interface irá blindar totalmente o acesso Web e da API Backend, travando invasores da internet em uma caixa blindada HTTP sem vazamento de dados. 
+4. Configure o seu Roteador Residencial para redirecionar as portas (Port Forwarding da porta externa `80` ou `443` para a porta local do Mint, que é `3000`), usando algum serviço tipo DuckDNS ou ngrok caso não queira expor seu IP fixo.

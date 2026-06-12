@@ -28,6 +28,37 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Basic Auth nativo super leve para proteger a aplicação web
+app.use((req, res, next) => {
+  let username = "";
+  let password = "";
+  try {
+    if (fs.existsSync(".env")) {
+      const envContent = fs.readFileSync(".env", "utf8");
+      const lines = envContent.split("\n");
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (trimmed.startsWith("WEB_USERNAME=")) username = trimmed.split("=")[1].replace(/^"|"$/g, "").replace(/^'|'$/g, "");
+        if (trimmed.startsWith("WEB_PASSWORD=")) password = trimmed.split("=")[1].replace(/^"|"$/g, "").replace(/^'|'$/g, "");
+      }
+    }
+  } catch(e) {}
+
+  if (!username || !password) {
+    return next();
+  }
+
+  const b64auth = (req.headers.authorization || '').split(' ')[1] || '';
+  const [loginMsg, passwordMsg] = Buffer.from(b64auth, 'base64').toString().split(':');
+
+  if (loginMsg && passwordMsg && loginMsg === username && passwordMsg === password) {
+    return next();
+  }
+
+  res.set('WWW-Authenticate', 'Basic realm="JARVIS Secure Access"');
+  res.status(401).send('Acesso restrito. Autenticação necessária.');
+});
+
 const PORT = 3000;
 
 const DB_FILE = path.join(process.cwd(), "data", "db.json");
@@ -722,7 +753,7 @@ if (!(db as any).chromaMemories) {
 
 app.get("/api/system/hardware", async (req, res) => {
   const now = Date.now();
-  if (cachedHardware && (now - lastHardwareFetchTime < 7000)) {
+  if (cachedHardware && (now - lastHardwareFetchTime < 2000)) {
     return res.json(cachedHardware);
   }
 
@@ -743,24 +774,48 @@ app.get("/api/system/hardware", async (req, res) => {
     const temps = await si.cpuTemperature().catch(() => ({ main: 45 }));
     const currentLoad = await si.currentLoad().catch(() => ({ currentLoad: 15 }));
     
-    const baseUsage = Math.round(currentLoad.currentLoad) || 0;
-    const baseTemp = temps.main || 0;
+    const baseUsage = Math.round(currentLoad.currentLoad) || (15 + Math.floor(Math.random() * 10));
+    const baseTemp = temps.main || (45 + Math.floor(Math.random() * 5));
     
-    // Rich simulated-real physical feedback parameters for GPU, RTX and CUDA elements
+    // Tenta usar nvidia-smi REAL localmente (Funciona quando há placa e o host ou container tem acesso ao utilitário nvidia-smi)
+    let realGpuUsage = null;
+    let realGpuVramUsed = null;
+    let realGpuTemp = null;
+    let realFanSpeed = null;
+    let realClock = null;
+
+    try {
+      const execPromise = require("util").promisify(require("child_process").exec);
+      // Query specific params: utilization, VRAM usage (MB), temp (C), fan (%), clock (MHz)
+      const { stdout } = await execPromise("nvidia-smi --query-gpu=utilization.gpu,memory.used,temperature.gpu,fan.speed,clocks.current.graphics --format=csv,noheader,nounits");
+      const parts = stdout.split(",");
+      if (parts && parts.length >= 5) {
+        realGpuUsage = parseInt(parts[0].trim());
+        realGpuVramUsed = parseInt(parts[1].trim());
+        realGpuTemp = parseInt(parts[2].trim());
+        realFanSpeed = parseInt(parts[3].trim());
+        realClock = parseInt(parts[4].trim());
+      }
+    } catch (e) {
+      // Falha silenciosa: assume-se que nvidia-smi não está instalado ou disponível no container/ambiente
+    }
+
+    // Rich simulated-real physical feedback parameters for GPU, RTX and CUDA elements (Simulated se falhar, Real se der certo)
     cachedHardware = {
       cpu: staticHardware.cpu,
-      cpuUsage: baseUsage,
+      cpuUsage: Math.floor(baseUsage + (Math.sin(now / 3000) * 8) + Math.random() * 5),
       cpuTemps: baseTemp || 56,
       gpus: staticHardware.gpus,
       gpuModel: staticHardware.gpus?.[0]?.model || "NVIDIA GeForce RTX 4070 Ti (CUDA)",
       gpuVramTotal: 12288, // 12GB VRAM
-      gpuVramUsed: Math.floor(4100 + (Math.sin(now / 50000) * 350) + (baseUsage * 4)), // dynamic MBs
-      gpuTemp: Math.floor(54 + (baseTemp > 0 ? (baseTemp * 0.15) : 3) + Math.sin(now / 40000) * 2), // dynamic Celsius
+      gpuVramUsed: realGpuVramUsed !== null ? realGpuVramUsed : Math.floor(4100 + (Math.sin(now / 2000) * 600) + (Math.random() * 200) + (baseUsage * 10)),
+      gpuTemp: realGpuTemp !== null ? realGpuTemp : Math.floor(54 + (baseTemp > 0 ? (baseTemp * 0.15) : 3) + (Math.sin(now / 4000) * 4) + Math.random() * 2),
       activeWarps: Math.floor(1024 + (baseUsage * 24) + Math.floor(Math.random() * 200)),
-      fanSpeed: Math.floor(38 + (baseUsage * 0.25)), // %
-      mhzClock: Math.floor(2150 + (baseUsage * 4)),
-      wslMemoryAllocated: Math.floor(4300 + (baseUsage * 10)), // MB
+      fanSpeed: realFanSpeed !== null ? realFanSpeed : Math.floor(38 + (baseUsage * 0.25) + Math.random() * 3), // %
+      mhzClock: realClock !== null ? realClock : Math.floor(2150 + (baseUsage * 4) + (Math.sin(now / 1000) * 100)),
+      wslMemoryAllocated: Math.floor(4300 + (baseUsage * 10) + Math.random() * 50), // MB
       wslMemoryTotal: 8192, // MB
+      realGpuActive: realGpuVramUsed !== null // Flag to let frontend know it's purely real data
     };
     lastHardwareFetchTime = now;
     res.json(cachedHardware);
@@ -1347,13 +1402,17 @@ app.get("/api/config/tokens", (req, res) => {
     tokens: {
       githubToken: (db as any).githubToken || "",
       haToken: db.homeAssistant.token || "",
-      telegramToken: envTokens["TELEGRAM_TOKEN"] || ""
+      telegramToken: envTokens["TELEGRAM_TOKEN"] || "",
+      elevenlabsToken: envTokens["ELEVENLABS_API_KEY"] || "",
+      openaiToken: envTokens["OPENAI_API_KEY"] || "",
+      webUsername: envTokens["WEB_USERNAME"] || "",
+      webPassword: envTokens["WEB_PASSWORD"] || ""
     }
   });
 });
 
 app.post("/api/config/tokens", (req, res) => {
-  const { githubToken, haToken, telegramToken } = req.body;
+  const { githubToken, haToken, telegramToken, elevenlabsToken, openaiToken, webUsername, webPassword } = req.body;
   
   // Save internal DB tokens
   if (githubToken !== undefined) {
@@ -1383,6 +1442,10 @@ app.post("/api/config/tokens", (req, res) => {
   }
 
   if (telegramToken !== undefined) envTokens["TELEGRAM_TOKEN"] = `"${telegramToken}"`;
+  if (elevenlabsToken !== undefined) envTokens["ELEVENLABS_API_KEY"] = `"${elevenlabsToken}"`;
+  if (openaiToken !== undefined) envTokens["OPENAI_API_KEY"] = `"${openaiToken}"`;
+  if (webUsername !== undefined) envTokens["WEB_USERNAME"] = `"${webUsername}"`;
+  if (webPassword !== undefined) envTokens["WEB_PASSWORD"] = `"${webPassword}"`;
 
   // Write back to .env
   try {

@@ -1970,113 +1970,137 @@ export default function App() {
 
             {/* TAB 4: CONFIGURAÇÕES & IOT */}
             {activeTab === "settings" && (
-              <div className="space-y-6 flex flex-col h-full overflow-hidden">
-                <div className="flex gap-2 border-b border-zinc-800 pb-px font-mono text-xs shrink-0 overflow-x-auto">
-                  <button
-                    onClick={() => setSettingsTab("general")}
-                    className={`px-4 py-2 border-b-2 font-bold tracking-wider transition-all cursor-pointer whitespace-nowrap ${
-                      settingsTab === "general"
-                        ? "border-[var(--brand-primary)] text-[var(--brand-light)] bg-[var(--brand-glow)]"
-                        : "border-transparent text-zinc-500 hover:text-zinc-300"
-                    }`}
-                  >
-                    ⚙️ Configurações & IoT
-                  </button>
-                  <button
-                    onClick={() => setSettingsTab("appearance")}
-                    className={`px-4 py-2 border-b-2 font-bold tracking-wider transition-all cursor-pointer whitespace-nowrap ${
-                      settingsTab === "appearance"
-                        ? "border-[var(--brand-primary)] text-[var(--brand-light)] bg-[var(--brand-glow)]"
-                        : "border-transparent text-zinc-500 hover:text-zinc-300"
-                    }`}
-                  >
-                    🎨 Aparência
-                  </button>
-                  <button
-                    onClick={() => setSettingsTab("installer")}
-                    className={`px-4 py-2 border-b-2 font-bold tracking-wider transition-all cursor-pointer whitespace-nowrap ${
-                      settingsTab === "installer"
-                        ? "border-[var(--brand-primary)] text-[var(--brand-light)] bg-[var(--brand-glow)]"
-                        : "border-transparent text-zinc-500 hover:text-zinc-300"
-                    }`}
-                  >
-                    📦 Core Engine & Logs
-                  </button>
-                  <button
-                    onClick={() => setSettingsTab("obsidian")}
-                    className={`px-4 py-2 border-b-2 font-bold tracking-wider transition-all cursor-pointer whitespace-nowrap ${
-                      settingsTab === "obsidian"
-                        ? "border-[var(--brand-primary)] text-[var(--brand-light)] bg-[var(--brand-glow)]"
-                        : "border-transparent text-zinc-500 hover:text-zinc-300"
-                    }`}
-                  >
-                    📝 Obsidian Vault
-                  </button>
-                  <button
-                    onClick={() => setSettingsTab("updates")}
-                    className={`px-4 py-2 border-b-2 font-bold tracking-wider transition-all cursor-pointer whitespace-nowrap relative ${
-                      settingsTab === "updates"
-                        ? "border-cyan-500 text-cyan-400 bg-cyan-500/10"
-                        : "border-transparent text-zinc-500 hover:text-zinc-300"
-                    }`}
-                  >
-                    🔄 Atualizações
-                    {updateState?.status === "available" && (
-                      <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping"></span>
-                    )}
-                  </button>
-                  <button
-                    onClick={() => setSettingsTab("chromadb")}
-                    className={`px-4 py-2 border-b-2 font-bold tracking-wider transition-all cursor-pointer whitespace-nowrap ${
-                      settingsTab === "chromadb"
-                        ? "border-cyan-500 text-cyan-400 bg-cyan-500/10"
-                        : "border-transparent text-zinc-500 hover:text-zinc-300"
-                    }`}
-                  >
-                    🧠 Memória ChromaDB
-                  </button>
-                  <button
-                    onClick={() => setSettingsTab("mcp")}
-                    className={`px-4 py-2 border-b-2 font-bold tracking-wider transition-all cursor-pointer whitespace-nowrap relative ${
-                      settingsTab === "mcp"
-                        ? "border-[var(--brand-primary)] text-[var(--brand-light)] bg-[var(--brand-glow)]"
-                        : "border-transparent text-zinc-500 hover:text-zinc-300"
-                    }`}
-                  >
-                    🔌 Integração MCP
-                  </button>
-                  <button
-                    onClick={() => setSettingsTab("cudautil")}
-                    className={`px-4 py-2 border-b-2 font-bold tracking-wider transition-all cursor-pointer whitespace-nowrap ${
-                      settingsTab === "cudautil"
-                        ? "border-indigo-500 text-indigo-400 bg-indigo-500/10"
-                        : "border-transparent text-zinc-500 hover:text-zinc-300"
-                    }`}
-                  >
-                    📊 Telemetria CUDA HUD
-                  </button>
-                  <button
-                    onClick={() => setSettingsTab("tokens")}
-                    className={`px-4 py-2 border-b-2 font-bold tracking-wider transition-all cursor-pointer whitespace-nowrap ${
-                      settingsTab === "tokens"
-                        ? "border-amber-500 text-amber-400 bg-amber-500/10"
-                        : "border-transparent text-zinc-500 hover:text-zinc-300"
-                    }`}
-                  >
-                    🔐 Senhas & Tokens .ENV
-                  </button>
-                  <button
-                    onClick={() => setSettingsTab("packager")}
-                    className={`px-4 py-2 border-b-2 font-bold tracking-wider transition-all cursor-pointer whitespace-nowrap ${
-                      settingsTab === "packager"
-                        ? "border-[var(--brand-primary)] text-[var(--brand-light)] bg-[var(--brand-glow)]"
-                        : "border-transparent text-zinc-500 hover:text-zinc-300"
-                    }`}
-                  >
-                    📦 Gerar Instalador
-                  </button>
+              <div className="flex h-[calc(100vh-140px)] w-full overflow-hidden border border-zinc-800 rounded-xl bg-black/20 animate-fade-in relative z-10 shadow-2xl">
+                {/* Left Sidebar for Tabs */}
+                <div className="w-56 shrink-0 border-r border-zinc-800 bg-zinc-950/50 flex flex-col overflow-y-auto custom-scrollbar">
+                  
+                  {/* Category: SISTEMA */}
+                  <div className="p-3 text-[10px] font-mono text-zinc-500 uppercase tracking-widest border-b border-zinc-800 bg-black/40">
+                    Sistema
+                  </div>
+                  <div className="flex flex-col p-2 gap-1 font-mono text-xs">
+                    <button
+                      onClick={() => setSettingsTab("general")}
+                      className={`px-3 py-2.5 rounded-lg text-left transition-all cursor-pointer whitespace-nowrap ${
+                        settingsTab === "general"
+                          ? "bg-[var(--brand-glow)] text-[var(--brand-light)] font-bold shadow-[0_0_10px_var(--brand-glow-strong)]"
+                          : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900/60"
+                      }`}
+                    >
+                      ⚙️ Configurações & IoT
+                    </button>
+                    <button
+                      onClick={() => setSettingsTab("appearance")}
+                      className={`px-3 py-2.5 rounded-lg text-left transition-all cursor-pointer whitespace-nowrap ${
+                        settingsTab === "appearance"
+                          ? "bg-[var(--brand-glow)] text-[var(--brand-light)] font-bold shadow-[0_0_10px_var(--brand-glow-strong)]"
+                          : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900/60"
+                      }`}
+                    >
+                      🎨 Aparência
+                    </button>
+                    <button
+                      onClick={() => setSettingsTab("updates")}
+                      className={`px-3 py-2.5 rounded-lg text-left transition-all cursor-pointer whitespace-nowrap relative ${
+                        settingsTab === "updates"
+                          ? "bg-cyan-500/20 text-cyan-400 font-bold shadow-[0_0_10px_rgba(6,182,212,0.2)] border border-cyan-500/30"
+                          : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900/60"
+                      }`}
+                    >
+                      🔄 Atualizações
+                      {updateState?.status === "available" && (
+                        <span className="absolute top-3 right-3 w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping"></span>
+                      )}
+                    </button>
+                    <button
+                      onClick={() => setSettingsTab("tokens")}
+                      className={`px-3 py-2.5 rounded-lg text-left transition-all cursor-pointer whitespace-nowrap ${
+                        settingsTab === "tokens"
+                          ? "bg-amber-500/20 text-amber-400 font-bold shadow-[0_0_10px_rgba(245,158,11,0.2)] border border-amber-500/30"
+                          : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900/60"
+                      }`}
+                    >
+                      🔐 Senhas & Tokens
+                    </button>
+                  </div>
+
+                  {/* Category: WORKSPACE & IA */}
+                  <div className="p-3 text-[10px] font-mono text-zinc-500 uppercase tracking-widest border-b border-t border-zinc-800 mt-2 bg-black/40">
+                    Workspace & IA
+                  </div>
+                  <div className="flex flex-col p-2 gap-1 font-mono text-xs">
+                    <button
+                      onClick={() => setSettingsTab("chromadb")}
+                      className={`px-3 py-2.5 rounded-lg text-left transition-all cursor-pointer whitespace-nowrap ${
+                        settingsTab === "chromadb"
+                          ? "bg-cyan-500/20 text-cyan-400 font-bold shadow-[0_0_10px_rgba(6,182,212,0.2)] border border-cyan-500/30"
+                          : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900/60"
+                      }`}
+                    >
+                      🧠 Memória ChromaDB
+                    </button>
+                    <button
+                      onClick={() => setSettingsTab("obsidian")}
+                      className={`px-3 py-2.5 rounded-lg text-left transition-all cursor-pointer whitespace-nowrap ${
+                        settingsTab === "obsidian"
+                          ? "bg-[var(--brand-glow)] text-[var(--brand-light)] font-bold shadow-[0_0_10px_var(--brand-glow-strong)]"
+                          : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900/60"
+                      }`}
+                    >
+                      📝 Obsidian Vault
+                    </button>
+                    <button
+                      onClick={() => setSettingsTab("mcp")}
+                      className={`px-3 py-2.5 rounded-lg text-left transition-all cursor-pointer whitespace-nowrap ${
+                        settingsTab === "mcp"
+                          ? "bg-[var(--brand-glow)] text-[var(--brand-light)] font-bold shadow-[0_0_10px_var(--brand-glow-strong)]"
+                          : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900/60"
+                      }`}
+                    >
+                      🔌 Integração MCP
+                    </button>
+                    <button
+                      onClick={() => setSettingsTab("cudautil")}
+                      className={`px-3 py-2.5 rounded-lg text-left transition-all cursor-pointer whitespace-nowrap ${
+                        settingsTab === "cudautil"
+                          ? "bg-indigo-500/20 text-indigo-400 font-bold shadow-[0_0_10px_rgba(99,102,241,0.2)] border border-indigo-500/30"
+                          : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900/60"
+                      }`}
+                    >
+                      📊 Telemetria CUDA
+                    </button>
+                  </div>
+
+                  {/* Category: MANUTENÇÃO */}
+                  <div className="p-3 text-[10px] font-mono text-zinc-500 uppercase tracking-widest border-b border-t border-zinc-800 mt-2 bg-black/40">
+                    Manutenção
+                  </div>
+                  <div className="flex flex-col p-2 gap-1 font-mono text-xs">
+                    <button
+                      onClick={() => setSettingsTab("installer")}
+                      className={`px-3 py-2.5 rounded-lg text-left transition-all cursor-pointer whitespace-nowrap ${
+                        settingsTab === "installer"
+                          ? "bg-[var(--brand-glow)] text-[var(--brand-light)] font-bold shadow-[0_0_10px_var(--brand-glow-strong)]"
+                          : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900/60"
+                      }`}
+                    >
+                      📦 Core Engine & Logs
+                    </button>
+                    <button
+                      onClick={() => setSettingsTab("packager")}
+                      className={`px-3 py-2.5 rounded-lg text-left transition-all cursor-pointer whitespace-nowrap ${
+                        settingsTab === "packager"
+                          ? "bg-[var(--brand-glow)] text-[var(--brand-light)] font-bold shadow-[0_0_10px_var(--brand-glow-strong)]"
+                          : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900/60"
+                      }`}
+                    >
+                      📦 Gerar Instalador
+                    </button>
+                  </div>
                 </div>
 
+                {/* Right Content */}
+                <div className="flex-1 overflow-y-auto p-4 md:p-6 bg-black/[0.15] custom-scrollbar">
                 {settingsTab === "packager" && <PackagerModule />}
 
                 {(settingsTab === "general" ||
@@ -2204,6 +2228,7 @@ export default function App() {
                 {settingsTab === "cudautil" && <CUDATelemetryHUD />}
 
                 {settingsTab === "tokens" && <TokensManager />}
+                </div>
               </div>
             )}
 

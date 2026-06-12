@@ -294,8 +294,14 @@ export default function CUDATelemetryHUD() {
                   </defs>
                   <CartesianGrid stroke="#1e293b" strokeDasharray="3 3" opacity={0.35} />
                   <XAxis dataKey="time" stroke="#475569" fontSize={9} tickLine={false} />
-                  <YAxis stroke="#475569" fontSize={9} tickLine={false} unit="G" />
+                  <YAxis stroke="#475569" fontSize={9} tickLine={false} unit="%" domain={[0, 100]} />
                   <Tooltip
+                    formatter={(value: number, name: string) => {
+                      if (name.includes("Saturação VRAM")) return [`${value}%`, name];
+                      if (name.includes("Threads CPU")) return [`${value}%`, name];
+                      if (name.includes("Temps GPU")) return [`${value}°C`, name];
+                      return [value, name];
+                    }}
                     contentStyle={{
                       backgroundColor: "#09090b",
                       border: "1px solid #18181b",
@@ -307,9 +313,9 @@ export default function CUDATelemetryHUD() {
                     labelStyle={{ color: "#a1a1aa" }}
                   />
                   <Area
-                    name="Saturação VRAM (GB)"
+                    name="Saturação VRAM (%)"
                     type="monotone"
-                    dataKey="VRAM"
+                    dataKey="GPU"
                     stroke="#10b981"
                     strokeWidth={2}
                     fillOpacity={1}

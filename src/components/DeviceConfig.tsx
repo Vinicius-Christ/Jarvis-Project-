@@ -140,7 +140,6 @@ export default function DeviceConfig({ devices, onRefresh, currentTheme, onChang
   // States for testing Ollama connection
   const [ollamaStatus, setOllamaStatus] = useState<"idle" | "testing" | "online">("online");
   const [ollamaUrl, setOllamaUrl] = useState("http://192.168.1.104:11434");
-  const [ollamaModel, setOllamaModel] = useState("phi3");
 
   const deviceTypes = [
     "Lâmpada Inteligente (RGB/Dimmer)",
@@ -467,15 +466,9 @@ export default function DeviceConfig({ devices, onRefresh, currentTheme, onChang
             <div className="grid grid-cols-2 gap-3 pt-1">
               <div>
                 <label className="text-zinc-500 block text-[10px] uppercase mb-1">Modelo Principal</label>
-                <select
-                  value={ollamaModel}
-                  onChange={(e) => setOllamaModel(e.target.value)}
-                  className="w-full bg-zinc-950 border border-zinc-800 text-zinc-300 font-mono text-xs p-1.5 rounded focus:outline-none focus:border-[var(--brand-primary)]"
-                >
-                  
-                  <option value="phi3">Phi-3 Mini (3.8B) - 2.4GB</option>
-                  
-                </select>
+                <div className="bg-zinc-950 border border-zinc-800 text-zinc-300 font-mono text-xs p-1.5 rounded flex items-center justify-center gap-1.5 h-[34px] opacity-75 cursor-not-allowed">
+                  Phi-3 Mini (3.8B) Local
+                </div>
               </div>
               <div>
                 <label className="text-zinc-500 block text-[10px] uppercase mb-1">Aceleração Ativa</label>
