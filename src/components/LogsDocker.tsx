@@ -1,3 +1,4 @@
+import { getServerUrl } from "../lib/api";
 import React, { useState, useEffect, useRef } from "react";
 import { Terminal, RefreshCw, Layers, ShieldCheck, Play, Pause, XCircle, RotateCw, Server, Activity } from "lucide-react";
 
@@ -48,7 +49,7 @@ export default function LogsDocker() {
 
   const fetchContainerStatuses = async () => {
     try {
-      const res = await fetch("/api/system/health");
+      const res = await fetch(getServerUrl() + "/api/system/health");
       if (res.ok) {
         const data = await res.json();
         if (data.containers) {
@@ -61,7 +62,7 @@ export default function LogsDocker() {
   const fetchLogs = async () => {
     try {
       setLoading(true);
-      const res = await fetch(`/api/docker/logs?container=${selectedContainer}`);
+      const res = await fetch(getServerUrl() + `/api/docker/logs?container=${selectedContainer}`);
       if (res.ok) {
         const data = await res.json();
         setLogs(data.logs || []);
@@ -111,7 +112,7 @@ export default function LogsDocker() {
     setActionMessage(`[DOCKER] Enviando comando '${action}' para o container: jarvis_${containerId}...`);
     
     try {
-      const res = await fetch("/api/docker/action", {
+      const res = await fetch(getServerUrl() + "/api/docker/action", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ container: containerId, action })
@@ -135,7 +136,7 @@ export default function LogsDocker() {
   const triggerAction = async (action: string) => {
     if (action === "Pause Services (Hibernar)") {
       try {
-        await fetch("/api/system/toggle", { method: "POST" });
+        await fetch(getServerUrl() + "/api/system/toggle", { method: "POST" });
         window.location.reload();
       } catch (err) {
         console.error(err);
@@ -146,7 +147,7 @@ export default function LogsDocker() {
     setActionMessage(`[SISTEMA] Comando '${action}' disparado para o container '${selectedContainer}'...`);
     
     if (action === "Restart Container") {
-      fetch("/api/docker/restart", {
+      fetch(getServerUrl() + "/api/docker/restart", {
          method: "POST",
          headers: { "Content-Type": "application/json" },
          body: JSON.stringify({ containerName: selectedContainer })

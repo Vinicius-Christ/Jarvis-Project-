@@ -1,3 +1,4 @@
+import { getServerUrl } from "../lib/api";
 import React, { useState, useEffect } from "react";
 import { Sliders, Plus, Link, Wifi, Save, ArrowUpRight, Cpu, HelpCircle, HardDrive, ShieldCheck, CheckCircle, Palette } from "lucide-react";
 import PackagerModule from "./PackagerModule";
@@ -95,7 +96,7 @@ export default function DeviceConfig({ devices, onRefresh, currentTheme, onChang
   const [savingHA, setSavingHA] = useState(false);
 
   useEffect(() => {
-    fetch("/api/ai/persona")
+    fetch(getServerUrl() + "/api/ai/persona")
       .then(r => r.json())
       .then(data => {
         if (data.activePersona) {
@@ -105,7 +106,7 @@ export default function DeviceConfig({ devices, onRefresh, currentTheme, onChang
       .catch(() => {});
 
     const fetchHAConfig = () => {
-      fetch("/api/db")
+      fetch(getServerUrl() + "/api/db")
         .then(r => r.json())
         .then(data => {
           if (data.homeAssistant) {
@@ -174,7 +175,7 @@ export default function DeviceConfig({ devices, onRefresh, currentTheme, onChang
     setGeneratingDocs(true);
     setDocsSuccess(null);
     try {
-      const res = await fetch("/api/generate/docs", { method: "POST" });
+      const res = await fetch(getServerUrl() + "/api/generate/docs", { method: "POST" });
       if (res.ok) {
         const data = await res.json();
         setDocsSuccess(data.message);
@@ -196,7 +197,7 @@ export default function DeviceConfig({ devices, onRefresh, currentTheme, onChang
     setSuccessMsg(null);
 
     try {
-      const res = await fetch("/api/iot/add", {
+      const res = await fetch(getServerUrl() + "/api/iot/add", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -225,7 +226,7 @@ export default function DeviceConfig({ devices, onRefresh, currentTheme, onChang
 
   const handleToggleDevice = async (deviceId: string, currentState: string) => {
     try {
-      await fetch("/api/update/iot", {
+      await fetch(getServerUrl() + "/api/update/iot", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -243,7 +244,7 @@ export default function DeviceConfig({ devices, onRefresh, currentTheme, onChang
     e.preventDefault();
     setSavingHA(true);
     try {
-      const res = await fetch("/api/homeassistant/config", {
+      const res = await fetch(getServerUrl() + "/api/homeassistant/config", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ip: haIp, token: haToken })

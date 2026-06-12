@@ -8,9 +8,12 @@ let tray = null;
 let isQuitting = false;
 
 function createWindow() {
+  const isHidden = process.argv.includes('--hidden');
+
   mainWindow = new BrowserWindow({
     width: 1280,
     height: 800,
+    show: !isHidden, // Inicia minimizado se '--hidden' for passado
     autoHideMenuBar: true,
     titleBarStyle: 'default',
     title: "JARVIS Core Suite v5.0",
@@ -21,23 +24,25 @@ function createWindow() {
     }
   });
 
-  // Carrega uma tela de transição básica
-  mainWindow.loadFile(path.join(__dirname, 'index.html')).catch(() => {
-    // Caso não queira html estático direto, vai para o loader
+  if (isHidden && process.platform === 'win32') {
+    mainWindow.setSkipTaskbar(true);
+  }
+
+  // Auto-Start do Windows nativo do Electron (Opcional caso não use o .vbs)
+  if (app.isPackaged) {
+    app.setLoginItemSettings({
+      openAtLogin: true,
+      args: ['--hidden']
+    });
+  }
+
+  // Carrega a interface estática do React (Modo Cliente)
+  mainWindow.loadFile(path.join(__dirname, 'dist', 'index.html')).catch((err) => {
+    console.error("[Electron Error] Falha ao carregar dist/index.html:", err);
   });
 
-  // Inicializa o backend Express requerendo diretamente no processo main
-  try {
-    process.env.NODE_ENV = 'production';
-    require(path.join(__dirname, 'dist', 'server.cjs'));
-    console.log("[Server] EXPRESS SERVER INICIADO INTERNAMENTE");
-    
-    setTimeout(() => {
-      mainWindow.loadURL('http://localhost:3000').catch(() => {});
-    }, 1500);
-  } catch (err) {
-    console.error("[Server Erro Interno]", err);
-  }
+  // Backend não roda mais aqui no cliente!
+  // Configuração migrada para a arquitetura Cliente-Servidor (Linux Mint)
 
   // Quando o usuário tenta fechar a janela, interceptamos para esconder na bandeja (segundo plano)
   mainWindow.on('close', function (event) {
@@ -110,24 +115,6 @@ function createTray() {
            createWindow();
          }
       } 
-    },
-    {
-      label: 'Pausar Recursos (Docker Compose)',
-      click: function () {
-        console.log("[TRAY] Hibernando containers via compose...");
-        exec("docker compose pause", { cwd: app.getAppPath(), shell: true }, (err, stdout, stderr) => {
-          if (err) console.error("[Docker Pause Erro]", err);
-        });
-      }
-    },
-    {
-      label: 'Retomar Recursos (Docker Compose)',
-      click: function () {
-        console.log("[TRAY] Despausando containers via compose...");
-        exec("docker compose unpause", { cwd: app.getAppPath(), shell: true }, (err, stdout, stderr) => {
-          if (err) console.error("[Docker Unpause Erro]", err);
-        });
-      }
     },
     { type: 'separator' },
     { 

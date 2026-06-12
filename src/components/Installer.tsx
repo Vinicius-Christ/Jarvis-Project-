@@ -1,3 +1,4 @@
+import { getServerUrl } from "../lib/api";
 import React, { useState, useEffect, useRef } from "react";
 import { Play, RotateCcw, AlertCircle, CheckCircle, Terminal, Download, Copy, Check, Server, Eye } from "lucide-react";
 
@@ -211,7 +212,7 @@ export default function Installer({ installerState, onRefresh }: InstallerProps)
 
   const triggerInstallation = async () => {
     try {
-      await fetch("/api/install/trigger", {
+      await fetch(getServerUrl() + "/api/install/trigger", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ detectExisting })
@@ -224,7 +225,7 @@ export default function Installer({ installerState, onRefresh }: InstallerProps)
 
   const resetInstallation = async () => {
     try {
-      await fetch("/api/install/reset", { method: "POST" });
+      await fetch(getServerUrl() + "/api/install/reset", { method: "POST" });
       onRefresh();
     } catch (err) {
       console.error(err);

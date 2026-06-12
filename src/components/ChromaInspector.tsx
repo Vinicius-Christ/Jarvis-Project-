@@ -1,3 +1,4 @@
+import { getServerUrl } from "../lib/api";
 import React, { useState, useEffect } from "react";
 import {
   Brain,
@@ -46,7 +47,7 @@ export default function ChromaInspector() {
   const fetchMemories = async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/chroma/memories");
+      const res = await fetch(getServerUrl() + "/api/chroma/memories");
       if (res.ok) {
         const data = await res.json();
         setMemories(data);
@@ -70,7 +71,7 @@ export default function ChromaInspector() {
     if (!newText.trim()) return;
 
     try {
-      const res = await fetch("/api/chroma/memories", {
+      const res = await fetch(getServerUrl() + "/api/chroma/memories", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text: newText, category: newCategory })
@@ -90,7 +91,7 @@ export default function ChromaInspector() {
   const handleUpdateMemory = async (id: string) => {
     if (!editText.trim()) return;
     try {
-      const res = await fetch(`/api/chroma/memories/${id}`, {
+      const res = await fetch(getServerUrl() + `/api/chroma/memories/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text: editText, category: editCategory })
@@ -111,7 +112,7 @@ export default function ChromaInspector() {
       return;
     }
     try {
-      const res = await fetch(`/api/chroma/memories/${id}`, {
+      const res = await fetch(getServerUrl() + `/api/chroma/memories/${id}`, {
         method: "DELETE"
       });
       if (res.ok) {

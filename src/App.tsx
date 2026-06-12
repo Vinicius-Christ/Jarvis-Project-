@@ -1,3 +1,5 @@
+import { getServerUrl } from "./lib/api";
+import PackagerModule from "./components/PackagerModule";
 import React, { useState, useEffect } from "react";
 import {
   Server,
@@ -112,6 +114,7 @@ export default function App() {
     | "cudautil"
     | "mcp"
     | "tokens"
+    | "packager"
   >("general");
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [systemState, setSystemState] = useState<any>(null);
@@ -181,7 +184,7 @@ export default function App() {
     const runHealthCheck = async () => {
       try {
         const start = performance.now();
-        const res = await fetch("/api/system/health");
+        const res = await fetch(getServerUrl() + "/api/system/health");
         const duration = Math.round(performance.now() - start);
         if (res.ok) {
           const data = await res.json();
@@ -205,7 +208,7 @@ export default function App() {
   // Fetch updated records from backend
   const fetchSystemState = async () => {
     try {
-      const res = await fetch("/api/db");
+      const res = await fetch(getServerUrl() + "/api/db");
       if (res.ok) {
         const data = await res.json();
         setSystemState(data);
@@ -217,7 +220,7 @@ export default function App() {
 
   const fetchUpdateState = async () => {
     try {
-      const res = await fetch("/api/system/update/status");
+      const res = await fetch(getServerUrl() + "/api/system/update/status");
       if (res.ok) {
         setUpdateState(await res.json());
       }
@@ -226,7 +229,7 @@ export default function App() {
 
   const fetchHardwareStats = async () => {
     try {
-      const res = await fetch("/api/system/hardware");
+      const res = await fetch(getServerUrl() + "/api/system/hardware");
       if (res.ok) {
         setHardwareStats(await res.json());
       }
@@ -239,7 +242,7 @@ export default function App() {
     fetchUpdateState();
 
     // Auto check update once on startup
-    fetch("/api/system/update/check")
+    fetch(getServerUrl() + "/api/system/update/check")
       .then(() => fetchUpdateState())
       .catch(() => {});
 
@@ -275,7 +278,7 @@ export default function App() {
     model?: string,
   ) => {
     try {
-      const res = await fetch("/api/chat", {
+      const res = await fetch(getServerUrl() + "/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -318,7 +321,7 @@ export default function App() {
             const catMatch = attributesStr.match(/category="([^"]+)"/);
             const descMatch = attributesStr.match(/description="([^"]+)"/);
             if (valueMatch && catMatch) {
-              await fetch("/api/update/finance", {
+              await fetch(getServerUrl() + "/api/update/finance", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -334,7 +337,7 @@ export default function App() {
             const titleMatch = attributesStr.match(/title="([^"]+)"/);
             const dateMatch = attributesStr.match(/datetime="([^"]+)"/);
             if (titleMatch && dateMatch) {
-              await fetch("/api/update/agenda", {
+              await fetch(getServerUrl() + "/api/update/agenda", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -347,7 +350,7 @@ export default function App() {
           } else if (type === "PC") {
             const workspaceMatch = attributesStr.match(/workspace="([^"]+)"/);
             if (workspaceMatch) {
-              await fetch("/api/update/pc", {
+              await fetch(getServerUrl() + "/api/update/pc", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ workspace: workspaceMatch[1] }),
@@ -368,7 +371,7 @@ export default function App() {
   const triggerPresetChange = async (presetName: string) => {
     setSelectedPreset(presetName);
     try {
-      await fetch("/api/update/iot", {
+      await fetch(getServerUrl() + "/api/update/iot", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ presetName }),
@@ -382,7 +385,7 @@ export default function App() {
   // Toggle individual home lights or ar-condicionado
   const toggleDeviceState = async (deviceId: string, currentState: string) => {
     try {
-      await fetch("/api/update/iot", {
+      await fetch(getServerUrl() + "/api/update/iot", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -399,7 +402,7 @@ export default function App() {
   // Change individual note content inside simulated Obsidian
   const updateObsidianNote = async (path: string, newContent: string) => {
     try {
-      await fetch("/api/update/obsidian", {
+      await fetch(getServerUrl() + "/api/update/obsidian", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ path, content: newContent }),
@@ -540,7 +543,7 @@ export default function App() {
       const categoryToUse =
         financeForm.type === "Receita" ? "Renda" : financeForm.category;
 
-      await fetch("/api/update/finance", {
+      await fetch(getServerUrl() + "/api/update/finance", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -564,7 +567,7 @@ export default function App() {
     e.preventDefault();
     if (!goalForm.limit || !goalForm.reason) return;
     try {
-      await fetch("/api/update/goal", {
+      await fetch(getServerUrl() + "/api/update/goal", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -581,7 +584,7 @@ export default function App() {
     e.preventDefault();
     if (!agendaForm.title || !agendaForm.datetime) return;
     try {
-      await fetch("/api/update/agenda", {
+      await fetch(getServerUrl() + "/api/update/agenda", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -819,7 +822,7 @@ export default function App() {
                 <Home className="w-3.5 h-3.5 text-zinc-400 group-hover:text-[var(--brand-light)]" />
               </a>
               <a
-                href="http://localhost:3000"
+                href={`${getServerUrl() || "http://localhost:3000"}/api-docs`}
                 target="_blank"
                 rel="noreferrer"
                 className={`w-8 h-8 rounded-full border flex items-center justify-center hover:bg-[var(--brand-glow)] hover:border-[var(--brand-border)] hover:text-[var(--brand-light)] transition-all group ${
@@ -865,7 +868,7 @@ export default function App() {
               <button
                 onClick={async () => {
                   try {
-                    await fetch("/api/system/toggle", { method: "POST" });
+                    await fetch(getServerUrl() + "/api/system/toggle", { method: "POST" });
                     fetchSystemState();
                   } catch (e) {
                     console.error("Failed to toggle system", e);
@@ -934,7 +937,7 @@ export default function App() {
               <button
                 onClick={async () => {
                   try {
-                    await fetch("/api/system/toggle", { method: "POST" });
+                    await fetch(getServerUrl() + "/api/system/toggle", { method: "POST" });
                     fetchSystemState();
                   } catch (e) {
                     console.error("Failed to toggle system", e);
@@ -2062,7 +2065,19 @@ export default function App() {
                   >
                     🔐 Senhas & Tokens .ENV
                   </button>
+                  <button
+                    onClick={() => setSettingsTab("packager")}
+                    className={`px-4 py-2 border-b-2 font-bold tracking-wider transition-all cursor-pointer whitespace-nowrap ${
+                      settingsTab === "packager"
+                        ? "border-[var(--brand-primary)] text-[var(--brand-light)] bg-[var(--brand-glow)]"
+                        : "border-transparent text-zinc-500 hover:text-zinc-300"
+                    }`}
+                  >
+                    📦 Gerar Instalador
+                  </button>
                 </div>
+
+                {settingsTab === "packager" && <PackagerModule />}
 
                 {(settingsTab === "general" ||
                   settingsTab === "appearance") && (

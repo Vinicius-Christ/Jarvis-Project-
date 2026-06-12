@@ -1,3 +1,4 @@
+import { getServerUrl } from "../lib/api";
 import React, { useState, useEffect } from "react";
 import { KeyRound, CheckCircle, Save, Variable, ShieldCheck } from "lucide-react";
 
@@ -12,7 +13,7 @@ export default function TokensManager() {
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch("/api/config/tokens")
+    fetch(getServerUrl() + "/api/config/tokens")
       .then(r => r.json())
       .then(data => {
         if (data.tokens) {
@@ -33,7 +34,7 @@ export default function TokensManager() {
     setSaving(true);
     setSuccessMsg(null);
     try {
-      const res = await fetch("/api/config/tokens", {
+      const res = await fetch(getServerUrl() + "/api/config/tokens", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(tokens)
@@ -88,8 +89,24 @@ export default function TokensManager() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             
             <div className="bg-zinc-900/40 border border-zinc-850 p-4 rounded-xl">
+              <label className="block text-[11px] uppercase font-bold text-zinc-300 font-mono mb-1.5">IP do Servidor Backend Linux</label>
+              <p className="text-[10px] text-zinc-500 mb-3 leading-relaxed">Endereço do notebook Linux rodando o motor. Se não preenchido, tenta conectar via localhost.</p>
+              <input
+                type="text"
+                name="serverIp"
+                value={localStorage.getItem("JARVIS_SERVER_URL") || ""}
+                onChange={(e) => {
+                  localStorage.setItem("JARVIS_SERVER_URL", e.target.value);
+                  // Refresh to apply
+                }}
+                placeholder="Ex: http://192.168.1.50:3000"
+                className="w-full bg-black/60 border border-zinc-800 text-amber-500 font-mono text-xs px-3 py-2 rounded focus:outline-none focus:border-amber-500 transition-colors"
+              />
+            </div>
+
+            <div className="bg-zinc-900/40 border border-zinc-850 p-4 rounded-xl">
               <label className="block text-[11px] uppercase font-bold text-zinc-300 font-mono mb-1.5">GitHub Auth Token</label>
-              <p className="text-[10px] text-zinc-500 mb-3 leading-relaxed">Obrigatório para o módulo Auto-Updater puxar as últimas versões ou consultar o Model Context Protocol e fazer leitura do código-fonte de seus repos. (Personal Access Token clássico ou fine-grained)</p>
+              <p className="text-[10px] text-zinc-500 mb-3 leading-relaxed">Obrigatório para o módulo Auto-Updater puxar as últimas versões ou consultar o Model Context Protocol e fazer leitura do código-fonte de seus repos.</p>
               <input
                 type="password"
                 name="githubToken"

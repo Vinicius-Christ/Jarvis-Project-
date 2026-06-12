@@ -1,0 +1,27 @@
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Instala ferramentas base se necessário (dependências de SO)
+RUN apk add --no-cache bash
+
+# Copia configurações de dependências
+COPY package.json package-lock.json ./
+
+# Instala as dependências de produção do servidor
+# Esbuild e vite são dependências de compilador, mas npm install normal resolve
+RUN npm install
+
+# Copia o código fonte
+COPY tsconfig.json vite.config.ts server.ts ./
+COPY src ./src
+COPY data ./data
+
+# Compila o servidor e a rota do express
+RUN npm run build
+
+# Exponha a porta 3000 usada pelo Express
+EXPOSE 3000
+
+# Executa o servidor compilado
+CMD ["npm", "run", "start"]

@@ -1,4 +1,5 @@
 import express from "express";
+import cors from "cors";
 import path from "path";
 import fs from "fs";
 import { exec } from "child_process";
@@ -24,6 +25,7 @@ if (typeof AbortSignal.timeout !== "function") {
 }
 
 const app = express();
+app.use(cors());
 app.use(express.json());
 
 const PORT = 3000;
@@ -2174,7 +2176,7 @@ async function startServer() {
     });
   }
 
-  app.listen(PORT, "127.0.0.1", () => {
+  app.listen(PORT, "0.0.0.0", () => {
     console.log(`JARVIS API Server running on port ${PORT}`);
   });
 }

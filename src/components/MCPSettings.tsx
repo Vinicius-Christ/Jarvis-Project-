@@ -1,3 +1,4 @@
+import { getServerUrl } from "../lib/api";
 import React, { useState, useEffect } from "react";
 import { Server, Folder, Github, Database, Play, CheckCircle, Info, Radio, Terminal } from "lucide-react";
 
@@ -9,7 +10,7 @@ export default function MCPSettings() {
   ]);
 
   useEffect(() => {
-    fetch("/api/db")
+    fetch(getServerUrl() + "/api/db")
       .then(r => r.json())
       .then(data => {
         if (data.mcpServers && Array.isArray(data.mcpServers)) {
@@ -22,7 +23,7 @@ export default function MCPSettings() {
   const toggleServer = async (id: string) => {
     setServers(prev => prev.map(s => s.id === id ? { ...s, active: !s.active } : s));
     try {
-      const res = await fetch("/api/mcp/toggle", {
+      const res = await fetch(getServerUrl() + "/api/mcp/toggle", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id })

@@ -5,6 +5,20 @@
 version: "3.8"
 
 services:
+  # JARVIS Backend API Original - Servidor Express Node.js
+  jarvis_api:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: jarvis_backend_api
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+    volumes:
+      - ./data:/app/data
+    restart: unless-stopped
+
   # ChromaDB - Banco de Dados Vetorial para armazenar os embeddings (RAG) do Obsidian
   chromadb:
     image: chromadb/chroma:latest

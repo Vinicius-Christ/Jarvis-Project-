@@ -1,3 +1,4 @@
+import { getServerUrl } from "../lib/api";
 import React, { useState } from "react";
 import {
   Shield,
@@ -73,7 +74,7 @@ export default function SSHDiagnostics() {
     ]);
 
     try {
-      const res = await fetch("/api/maintenance/execute", {
+      const res = await fetch(getServerUrl() + "/api/maintenance/execute", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: actionId })

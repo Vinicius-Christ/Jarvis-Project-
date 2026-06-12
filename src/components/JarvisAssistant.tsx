@@ -1,3 +1,4 @@
+import { getServerUrl } from "../lib/api";
 import React, { useState, useEffect, useRef } from "react";
 import { Mic, MicOff, Send, MessageSquare, Compass, Cpu, History, Volume2, Sparkles, VolumeX, Paperclip, Sliders, Settings, X } from "lucide-react";
 
@@ -87,7 +88,7 @@ export default function JarvisAssistant({ conversations, onSendMessage, isDarkMo
   // Synchronize and configure the parameters automatically when Persona changes
   const fetchActivePersona = async () => {
     try {
-      const res = await fetch("/api/ai/persona");
+      const res = await fetch(getServerUrl() + "/api/ai/persona");
       if (res.ok) {
         const data = await res.json();
         if (data.activePersona && data.activePersona !== activePersona) {
@@ -127,7 +128,7 @@ export default function JarvisAssistant({ conversations, onSendMessage, isDarkMo
       setRate(0.85);
     }
     try {
-      await fetch("/api/ai/persona", {
+      await fetch(getServerUrl() + "/api/ai/persona", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ persona: personaId })

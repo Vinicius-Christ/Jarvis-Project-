@@ -1,3 +1,4 @@
+import { getServerUrl } from "../lib/api";
 import React, { useState } from "react";
 import { Github, RefreshCw, GitCommit, CheckCircle2, AlertTriangle, Loader2, Save, Terminal, Play, ArrowUpRight } from "lucide-react";
 
@@ -25,7 +26,7 @@ export default function SystemUpdater({ updateState, onRefresh }: SystemUpdaterP
   const saveConfig = async () => {
     setIsSaving(true);
     try {
-      const res = await fetch("/api/system/update/config", {
+      const res = await fetch(getServerUrl() + "/api/system/update/config", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ githubRepo: repoInput, githubToken: tokenInput }),
@@ -43,7 +44,7 @@ export default function SystemUpdater({ updateState, onRefresh }: SystemUpdaterP
   const triggerCheck = async () => {
     setIsChecking(true);
     try {
-      await fetch("/api/system/update/check");
+      await fetch(getServerUrl() + "/api/system/update/check");
       onRefresh();
     } catch (e) {
       console.error(e);
@@ -55,7 +56,7 @@ export default function SystemUpdater({ updateState, onRefresh }: SystemUpdaterP
   const executeUpdate = async () => {
     setUpdateTriggered(true);
     try {
-      await fetch("/api/system/update/run", { method: "POST" });
+      await fetch(getServerUrl() + "/api/system/update/run", { method: "POST" });
       onRefresh();
     } catch (e) {
       console.error(e);

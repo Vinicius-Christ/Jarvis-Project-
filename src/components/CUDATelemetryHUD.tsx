@@ -1,3 +1,4 @@
+import { getServerUrl } from "../lib/api";
 import React, { useState, useEffect } from "react";
 import {
   Activity,
@@ -42,7 +43,7 @@ export default function CUDATelemetryHUD() {
 
   const fetchStats = async () => {
     try {
-      const res = await fetch("/api/system/hardware");
+      const res = await fetch(getServerUrl() + "/api/system/hardware");
       if (res.ok) {
         const data = await res.json();
         setStats(data);
