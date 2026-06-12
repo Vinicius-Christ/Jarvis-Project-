@@ -265,7 +265,7 @@ export default function LogsDocker() {
                 )}
                 <button
                   onClick={() => handleContainerAction(c.id, "restart")}
-                  className="px-2.5 py-1 rounded bg-zinc-900 hover:bg-zinc-800 border border-zinc-850 text-zinc-300 text-[10px] font-mono font-bold flex items-center justify-center cursor-pointer transition"
+                  className="px-2.5 py-1 rounded bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 text-[10px] font-mono font-bold flex items-center justify-center cursor-pointer transition"
                   title="Reiniciar container"
                 >
                   <RotateCw className="h-3 w-3" />
@@ -359,7 +359,7 @@ export default function LogsDocker() {
               className={`px-3 py-1.5 text-[11px] font-mono rounded-lg border transition-all cursor-pointer ${
                 selectedContainer === opt.id
                   ? `bg-[var(--brand-primary)]/10 ${opt.color} font-bold shadow-[0_0_10px_rgba(6,182,212,0.05)]`
-                  : "bg-zinc-950/40 border-zinc-850 hover:border-zinc-700 text-zinc-450 hover:text-zinc-200"
+                  : "bg-zinc-950/40 border-zinc-800 hover:border-zinc-700 text-zinc-450 hover:text-zinc-200"
               }`}
             >
               {opt.label}
@@ -368,9 +368,9 @@ export default function LogsDocker() {
         </div>
         
         <div className="relative">
-          <div className="bg-black border border-zinc-850 rounded-xl overflow-hidden flex flex-col shadow-2xl relative">
+          <div className="bg-black border border-zinc-800 rounded-xl overflow-hidden flex flex-col shadow-2xl relative">
             {/* Header of Terminal */}
-            <div className="flex justify-between items-center bg-zinc-950 px-4 py-2 border-b border-zinc-850">
+            <div className="flex justify-between items-center bg-zinc-950 px-4 py-2 border-b border-zinc-800">
               <span className="text-[10px] text-zinc-500 font-mono tracking-wider uppercase flex items-center gap-1.5">
                 <Layers className="h-3.5 w-3.5 text-[var(--brand-light)]" />
                 docker logs -f --tail=100 {selectedContainer === "all" ? "suite_jarvis_containers" : `jarvis_${selectedContainer}`}

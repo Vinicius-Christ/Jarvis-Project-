@@ -271,7 +271,7 @@ export default function DeviceConfig({ devices, onRefresh, currentTheme, onChang
   return (
     <>
       {configTab === "appearance" ? (
-        <div className="bg-zinc-900/30 border border-zinc-850 p-5 md:p-6 rounded-2xl space-y-6">
+        <div className="bg-zinc-900/30 border border-zinc-800 p-5 md:p-6 rounded-2xl space-y-6">
           <div>
             <h3 className="text-sm font-sans font-semibold text-[var(--brand-light,rgba(6,182,212))] uppercase tracking-wider flex items-center gap-1.5">
               <Palette className="h-4.5 w-4.5" />
@@ -292,7 +292,7 @@ export default function DeviceConfig({ devices, onRefresh, currentTheme, onChang
                 className={`text-left p-5 rounded-2xl border transition-all duration-300 relative cursor-pointer overflow-hidden group hover:scale-[1.02] flex flex-col justify-between h-44 ${
                   currentTheme === key
                     ? "bg-zinc-950 border-[var(--brand-primary)] shadow-[0_0_15px_var(--brand-glow)]"
-                    : "bg-zinc-950/60 border-zinc-900 hover:border-zinc-850 hover:bg-zinc-950/90 text-zinc-400"
+                    : "bg-zinc-950/60 border-zinc-900 hover:border-zinc-800 hover:bg-zinc-950/90 text-zinc-400"
                 }`}
               >
                 {/* Subtle colored glow bubble inside active card */}
@@ -321,7 +321,7 @@ export default function DeviceConfig({ devices, onRefresh, currentTheme, onChang
           </div>
 
           {/* Elegant Preview Hud Frame */}
-          <div className="bg-black/30 border border-zinc-850 p-5 rounded-xl space-y-4 font-mono text-xs">
+          <div className="bg-black/30 border border-zinc-800 p-5 rounded-xl space-y-4 font-mono text-xs">
             <div className="flex justify-between items-center border-b border-zinc-900 pb-2">
               <span className="text-zinc-500 uppercase text-[10px]">Demonstração de Elementos Holográficos</span>
               <span className="text-[9px] text-zinc-500">PREVIEW LIVE DO TEMA ATIVO</span>
@@ -355,7 +355,7 @@ export default function DeviceConfig({ devices, onRefresh, currentTheme, onChang
         <div className="space-y-6">
 
           {/* Home Assistant WebSocket Config Card */}
-          <div className="bg-zinc-900/50 border border-zinc-850 p-5 rounded-2xl space-y-4">
+          <div className="holographic-card p-5 space-y-4">
             <div className="flex items-center justify-between border-b border-zinc-805 pb-3">
               <h3 className="text-sm font-sans font-semibold text-[var(--brand-light,rgb(6,182,212))] uppercase tracking-wider flex items-center gap-2">
                 <Wifi className="h-4 w-4 text-[var(--brand-light,rgb(6,182,212))]" />
@@ -384,7 +384,7 @@ export default function DeviceConfig({ devices, onRefresh, currentTheme, onChang
               Consuma dados reais de sensores de temperatura, iluminação e interruptores da sua residência (IP: <code className="text-[var(--brand-light)] font-mono">{haIp}</code>) conectando-se diretamente ao barramento de eventos do Home Assistant.
             </p>
 
-            <form onSubmit={handleSaveHAConfig} className="space-y-3 font-mono text-xs p-3.5 bg-black/40 border border-zinc-850 rounded-xl">
+            <form onSubmit={handleSaveHAConfig} className="space-y-3 font-mono text-xs p-3.5 bg-black/40 border border-zinc-800 rounded-xl">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="text-zinc-500 block text-[9px] uppercase mb-1">Servidor IP / Local Host</label>
@@ -394,12 +394,12 @@ export default function DeviceConfig({ devices, onRefresh, currentTheme, onChang
                     placeholder="Ex: 192.168.15.8"
                     value={haIp}
                     onChange={(e) => setHaIp(e.target.value)}
-                    className="w-full bg-zinc-950 border border-zinc-850 text-zinc-300 font-mono text-xs px-2 py-1.5 rounded focus:outline-none focus:border-[var(--brand-primary)]"
+                    className="w-full bg-zinc-950 border border-zinc-800 text-zinc-300 font-mono text-xs px-2 py-1.5 rounded focus:outline-none focus:border-[var(--brand-primary)]"
                   />
                 </div>
                 <div>
                   <label className="text-zinc-500 block text-[9px] uppercase mb-1">Status de Conectividade</label>
-                  <div className="bg-zinc-950/80 border border-zinc-850 text-zinc-400 font-mono text-xs p-1.5 rounded flex items-center gap-1.5 h-[32px] select-none">
+                  <div className="bg-zinc-950/80 border border-zinc-800 text-zinc-400 font-mono text-xs p-1.5 rounded flex items-center gap-1.5 h-[32px] select-none">
                     <span className={`h-2 w-2 rounded-full shrink-0 ${haWsStatus === "connected" ? "bg-emerald-400 animate-ping" : haWsStatus === "connecting" || haWsStatus === "authenticating" ? "bg-amber-400 animate-pulse" : "bg-red-400"}`}></span>
                     <span className="text-[10px] uppercase font-bold tracking-widest">{haWsStatus}</span>
                   </div>
@@ -414,7 +414,7 @@ export default function DeviceConfig({ devices, onRefresh, currentTheme, onChang
                   placeholder="Seu token dente das configurações de perfil do Home Assistant"
                   value={haToken}
                   onChange={(e) => setHaToken(e.target.value)}
-                  className="w-full bg-zinc-950 border border-zinc-850 text-zinc-300 font-mono text-xs px-2 py-1.5 rounded focus:outline-none focus:border-[var(--brand-primary)]"
+                  className="w-full bg-zinc-950 border border-zinc-800 text-zinc-300 font-mono text-xs px-2 py-1.5 rounded focus:outline-none focus:border-[var(--brand-primary)]"
                 />
               </div>
 
@@ -430,7 +430,7 @@ export default function DeviceConfig({ devices, onRefresh, currentTheme, onChang
           </div>
 
           {/* Column 1 Card 2: Local Ollama Configuration & Verification Tutorials */}
-          <div className="bg-zinc-900/50 border border-zinc-850 p-5 rounded-2xl space-y-5">
+          <div className="holographic-card p-5 space-y-5">
           <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
             <h3 className="text-sm font-sans font-semibold text-[var(--brand-light)] uppercase tracking-wider flex items-center gap-2">
               <Cpu className="h-4 w-4 text-[var(--brand-light)]" />
@@ -445,7 +445,7 @@ export default function DeviceConfig({ devices, onRefresh, currentTheme, onChang
             De acordo com as especificações, seu JARVIS <strong>não fará chamadas à nuvem da OpenAI ou Gemini</strong> na sua rede local. Toda a lógica de NLP é executada nativamente pelo Ollama via placa gráfica local <strong>(CUDA/Aceleração de Hardware)</strong>.
           </p>
 
-          <div className="space-y-3 font-mono text-xs bg-black/40 border border-zinc-850 rounded-xl p-4">
+          <div className="space-y-3 font-mono text-xs bg-black/40 border border-zinc-800 rounded-xl p-4">
             <div>
               <label className="text-zinc-500 block text-[10px] uppercase mb-1">Endereço da API Local (Ollama Endpoint)</label>
               <div className="flex gap-2">
@@ -453,7 +453,7 @@ export default function DeviceConfig({ devices, onRefresh, currentTheme, onChang
                   type="text"
                   value={ollamaUrl}
                   onChange={(e) => setOllamaUrl(e.target.value)}
-                  className="flex-1 bg-zinc-950 border border-zinc-850 text-zinc-300 font-mono text-xs px-2.5 py-1.5 rounded focus:outline-none focus:border-[var(--brand-primary)]"
+                  className="flex-1 bg-zinc-950 border border-zinc-800 text-zinc-300 font-mono text-xs px-2.5 py-1.5 rounded focus:outline-none focus:border-[var(--brand-primary)]"
                 />
                 <button
                   onClick={testOllamaConnection}
@@ -470,7 +470,7 @@ export default function DeviceConfig({ devices, onRefresh, currentTheme, onChang
                 <select
                   value={ollamaModel}
                   onChange={(e) => setOllamaModel(e.target.value)}
-                  className="w-full bg-zinc-950 border border-zinc-850 text-zinc-300 font-mono text-xs p-1.5 rounded focus:outline-none focus:border-[var(--brand-primary)]"
+                  className="w-full bg-zinc-950 border border-zinc-800 text-zinc-300 font-mono text-xs p-1.5 rounded focus:outline-none focus:border-[var(--brand-primary)]"
                 >
                   <option value="llama3.1">Llama 3.1 (8B) Q4 - 4.7GB</option>
                   <option value="phi3">Phi-3 Mini (3.8B) - 2.4GB</option>
@@ -544,7 +544,7 @@ export default function DeviceConfig({ devices, onRefresh, currentTheme, onChang
         <div className="space-y-6">
           
           {/* Diagnostic Registry Form */}
-          <div className="bg-zinc-900/50 border border-zinc-850 p-5 rounded-2xl">
+          <div className="holographic-card p-5">
             <h3 className="text-sm font-sans font-semibold text-[var(--brand-light)] uppercase tracking-wider border-b border-zinc-800 pb-3 mb-4 flex items-center gap-1.5">
               <Plus className="h-4.5 w-4.5" />
               Cadastrar Novo Dispositivo (Sem Limite de Compatibilidade)
@@ -565,7 +565,7 @@ export default function DeviceConfig({ devices, onRefresh, currentTheme, onChang
                     placeholder="Ex: Lâmpada do Quarto Positivo"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    className="w-full bg-zinc-950 border border-zinc-850 text-zinc-300 px-2.5 py-1.5 rounded focus:outline-none focus:border-[var(--brand-primary)] text-xs"
+                    className="w-full bg-zinc-950 border border-zinc-800 text-zinc-300 px-2.5 py-1.5 rounded focus:outline-none focus:border-[var(--brand-primary)] text-xs"
                   />
                 </div>
                 <div>
@@ -573,7 +573,7 @@ export default function DeviceConfig({ devices, onRefresh, currentTheme, onChang
                   <select
                     value={type}
                     onChange={(e) => setType(e.target.value)}
-                    className="w-full bg-zinc-950 border border-zinc-850 text-zinc-300 p-1.5 rounded focus:outline-none focus:border-[var(--brand-primary)] text-xs"
+                    className="w-full bg-zinc-950 border border-zinc-800 text-zinc-300 p-1.5 rounded focus:outline-none focus:border-[var(--brand-primary)] text-xs"
                   >
                     {deviceTypes.map(t => (
                       <option key={t} value={t}>{t}</option>
@@ -588,7 +588,7 @@ export default function DeviceConfig({ devices, onRefresh, currentTheme, onChang
                   <select
                     value={brand}
                     onChange={(e) => setBrand(e.target.value)}
-                    className="w-full bg-zinc-950 border border-zinc-850 text-zinc-300 p-1.5 rounded focus:outline-none focus:border-[var(--brand-primary)] text-xs"
+                    className="w-full bg-zinc-950 border border-zinc-800 text-zinc-300 p-1.5 rounded focus:outline-none focus:border-[var(--brand-primary)] text-xs"
                   >
                     {brands.map(b => (
                       <option key={b} value={b}>{b}</option>
@@ -600,7 +600,7 @@ export default function DeviceConfig({ devices, onRefresh, currentTheme, onChang
                   <select
                     value={integration}
                     onChange={(e) => setIntegration(e.target.value)}
-                    className="w-full bg-zinc-950 border border-zinc-850 text-zinc-300 p-1.5 rounded focus:outline-none focus:border-[var(--brand-primary)] text-xs"
+                    className="w-full bg-zinc-950 border border-zinc-800 text-zinc-300 p-1.5 rounded focus:outline-none focus:border-[var(--brand-primary)] text-xs"
                   >
                     {integrations.map(i => (
                       <option key={i} value={i}>{i}</option>
@@ -618,7 +618,7 @@ export default function DeviceConfig({ devices, onRefresh, currentTheme, onChang
                     placeholder="Ex: Pronto via LocalTuya"
                     value={status}
                     onChange={(e) => setStatus(e.target.value)}
-                    className="w-full bg-zinc-950 border border-zinc-850 text-zinc-300 px-2.5 py-1.5 rounded focus:outline-none focus:border-[var(--brand-primary)] text-xs"
+                    className="w-full bg-zinc-950 border border-zinc-800 text-zinc-300 px-2.5 py-1.5 rounded focus:outline-none focus:border-[var(--brand-primary)] text-xs"
                   />
                 </div>
                 <div>
@@ -629,7 +629,7 @@ export default function DeviceConfig({ devices, onRefresh, currentTheme, onChang
                     placeholder="Ex: http://192.168.1.104:8123"
                     value={targetUrl}
                     onChange={(e) => setTargetUrl(e.target.value)}
-                    className="w-full bg-zinc-950 border border-zinc-850 text-zinc-300 px-2.5 py-1.5 rounded focus:outline-none focus:border-[var(--brand-primary)] text-xs"
+                    className="w-full bg-zinc-950 border border-zinc-800 text-zinc-300 px-2.5 py-1.5 rounded focus:outline-none focus:border-[var(--brand-primary)] text-xs"
                   />
                 </div>
               </div>
@@ -652,7 +652,7 @@ export default function DeviceConfig({ devices, onRefresh, currentTheme, onChang
           </div>
 
           {/* List of Registered IoT Entities */}
-          <div className="bg-zinc-900/50 border border-zinc-850 p-5 rounded-2xl">
+          <div className="holographic-card p-5">
             <h3 className="text-xs font-mono font-medium text-zinc-400 uppercase border-l border-[var(--brand-primary)] pl-2 mb-4">
               Dispositivos Mapeados no Home Assistant & Rede Local
             </h3>
@@ -662,13 +662,13 @@ export default function DeviceConfig({ devices, onRefresh, currentTheme, onChang
                 devices.map((device: any, idx: number) => (
                   <div
                     key={device.id || idx}
-                    className="bg-black/40 border border-zinc-850/60 p-3 rounded-xl flex flex-col gap-3"
+                    className="bg-black/40 border border-zinc-800/60 p-3 rounded-xl flex flex-col gap-3"
                   >
                     <div className="flex justify-between items-center w-full">
                       <div>
                         <div className="flex items-center gap-2">
                           <span className="text-xs font-semibold text-white">{device.name}</span>
-                          <span className="text-[9px] bg-zinc-900 border border-zinc-850 px-1.5 py-0.5 rounded text-zinc-400 font-mono">
+                          <span className="text-[9px] bg-zinc-900 border border-zinc-800 px-1.5 py-0.5 rounded text-zinc-400 font-mono">
                             {device.brand || "Positivo"}
                           </span>
                         </div>

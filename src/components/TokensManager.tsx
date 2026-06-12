@@ -88,7 +88,7 @@ export default function TokensManager() {
           </h3>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             
-            <div className="bg-zinc-900/40 border border-zinc-850 p-4 rounded-xl">
+            <div className="bg-zinc-900/40 border border-zinc-800 p-4 rounded-xl">
               <label className="block text-[11px] uppercase font-bold text-zinc-300 font-mono mb-1.5">IP do Servidor Backend Linux</label>
               <p className="text-[10px] text-zinc-500 mb-3 leading-relaxed">Endereço do notebook Linux rodando o motor. Se não preenchido, tenta conectar via localhost.</p>
               <input
@@ -104,7 +104,7 @@ export default function TokensManager() {
               />
             </div>
 
-            <div className="bg-zinc-900/40 border border-zinc-850 p-4 rounded-xl">
+            <div className="bg-zinc-900/40 border border-zinc-800 p-4 rounded-xl">
               <label className="block text-[11px] uppercase font-bold text-zinc-300 font-mono mb-1.5">GitHub Auth Token</label>
               <p className="text-[10px] text-zinc-500 mb-3 leading-relaxed">Obrigatório para o módulo Auto-Updater puxar as últimas versões ou consultar o Model Context Protocol e fazer leitura do código-fonte de seus repos.</p>
               <input
@@ -113,11 +113,11 @@ export default function TokensManager() {
                 value={tokens.githubToken}
                 onChange={handleChange}
                 placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"
-                className="w-full bg-black/60 border border-zinc-800 text-emerald-400 font-mono text-xs px-3 py-2 rounded focus:outline-none focus:border-amber-500 transition-colors"
+                className="w-full bg-black/60 border border-zinc-800 text-emerald-400 font-mono text-xs px-3 py-2 rounded focus:outline-none focus:border-amber-500 transition-colors transition-all duration-300 hover:border-zinc-600 focus:shadow-[0_0_15px_var(--brand-glow)]"
               />
             </div>
 
-            <div className="bg-zinc-900/40 border border-zinc-850 p-4 rounded-xl">
+            <div className="bg-zinc-900/40 border border-zinc-800 p-4 rounded-xl">
               <label className="block text-[11px] uppercase font-bold text-zinc-300 font-mono mb-1.5">Home Assistant Token</label>
               <p className="text-[10px] text-zinc-500 mb-3 leading-relaxed">Obrigatório para a comunicação via Websocket/Webhooks e IoT. Localizado no Perfil de Usuário {'>'} Tickets de Longa Duração (Long-Lived Tokens) na interface do seu Home Assistant local.</p>
               <input
@@ -126,7 +126,7 @@ export default function TokensManager() {
                 value={tokens.haToken}
                 onChange={handleChange}
                 placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-                className="w-full bg-black/60 border border-zinc-800 text-emerald-400 font-mono text-xs px-3 py-2 rounded focus:outline-none focus:border-amber-500 transition-colors"
+                className="w-full bg-black/60 border border-zinc-800 text-emerald-400 font-mono text-xs px-3 py-2 rounded focus:outline-none focus:border-amber-500 transition-colors transition-all duration-300 hover:border-zinc-600 focus:shadow-[0_0_15px_var(--brand-glow)]"
               />
             </div>
 
@@ -141,7 +141,7 @@ export default function TokensManager() {
           
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             
-            <div className="bg-zinc-900/40 border border-zinc-850 p-4 rounded-xl">
+            <div className="bg-zinc-900/40 border border-zinc-800 p-4 rounded-xl">
               <label className="block text-[11px] uppercase font-bold text-cyan-400 font-mono mb-1.5">Telegram Bot Token</label>
               <p className="text-[10px] text-zinc-500 mb-3 leading-relaxed">Ativa a interface via Telegram com as workflows do N8N incluídas no JARVIS. Criado e fornecido pelo @BotFather.</p>
               <input
@@ -150,7 +150,7 @@ export default function TokensManager() {
                 value={tokens.telegramToken}
                 onChange={handleChange}
                 placeholder="123456789:ABCDefGHI_jkl12..."
-                className="w-full bg-black/60 border border-zinc-800 text-emerald-400 font-mono text-xs px-3 py-2 rounded focus:outline-none focus:border-cyan-500"
+                className="w-full bg-black/60 border border-zinc-800 text-emerald-400 font-mono text-xs px-3 py-2 rounded focus:outline-none focus:border-cyan-500 transition-all duration-300 hover:border-zinc-600 focus:shadow-[0_0_15px_var(--brand-glow)]"
               />
             </div>
 

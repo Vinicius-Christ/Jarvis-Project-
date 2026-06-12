@@ -502,7 +502,7 @@ export default function JarvisAssistant({ conversations, onSendMessage, isDarkMo
           )}
 
           <div className={`flex gap-4 border-y w-full py-2 justify-center items-center ${
-            isDarkMode ? "border-zinc-850" : "border-zinc-200"
+            isDarkMode ? "border-zinc-800" : "border-zinc-200"
           }`}>
             <button
               onClick={() => setVoiceEnabled(!voiceEnabled)}
@@ -578,7 +578,7 @@ export default function JarvisAssistant({ conversations, onSendMessage, isDarkMo
           </div>
           <span className={`text-[10px] font-mono px-2 py-0.5 rounded border transition-all ${
             isDarkMode 
-              ? "text-zinc-400 bg-zinc-950 border-zinc-850" 
+              ? "text-zinc-400 bg-zinc-950 border-zinc-800" 
               : "text-zinc-650 bg-white border-zinc-200"
           }`}>
             {modelType === "llama3.1" ? "LOCAL_MODEL=Llama 3.1 (8B)-Q4" : modelType === "phi3" ? "LOCAL_MODEL=Phi3-Mini" : "LOCAL_MODEL=Llama-3.1-8B"}
@@ -611,7 +611,7 @@ export default function JarvisAssistant({ conversations, onSendMessage, isDarkMo
                     className={`px-3.5 py-2 rounded-xl text-xs leading-relaxed border transition-all ${
                       isJarvis
                         ? isDarkMode
-                          ? "bg-zinc-900/80 text-zinc-100 border-zinc-850"
+                          ? "bg-zinc-900/80 text-zinc-100 border-zinc-800"
                           : "bg-zinc-100 text-zinc-900 border-zinc-200 shadow-sm"
                         : isDarkMode
                           ? "bg-[var(--brand-dark)] text-[var(--brand-light)] border-[var(--brand-border)]"
@@ -693,7 +693,7 @@ export default function JarvisAssistant({ conversations, onSendMessage, isDarkMo
         {/* Attachment preview if any file is attached */}
         {attachedFile && (
           <div className={`px-4 py-2 border-t flex items-center justify-between text-xs shrink-0 ${
-            isDarkMode ? "bg-zinc-950 border-zinc-850" : "bg-zinc-50 border-zinc-200"
+            isDarkMode ? "bg-zinc-950 border-zinc-800" : "bg-zinc-50 border-zinc-200"
           }`}>
             <div className="flex items-center gap-2 text-[var(--brand-light,rgb(6,182,212))]">
               <Paperclip className="h-3.5 w-3.5" />
@@ -713,14 +713,14 @@ export default function JarvisAssistant({ conversations, onSendMessage, isDarkMo
 
         {/* Input prompt area */}
         <form onSubmit={handleSendText} className={`p-3 border-t flex gap-2 shrink-0 items-center ${
-          isDarkMode ? "border-zinc-850 bg-zinc-950/80" : "border-zinc-200 bg-zinc-50"
+          isDarkMode ? "border-zinc-800 bg-zinc-950/80" : "border-zinc-200 bg-zinc-50"
         }`}>
           <input
             type="file"
             ref={fileInputRef}
             onChange={handleFileChange}
             accept=".pdf,.docx,.xlsx,.xls,.txt"
-            className="hidden"
+            className="hidden transition-all duration-300 hover:border-zinc-600 focus:shadow-[0_0_15px_var(--brand-glow)]"
           />
           <button
             type="button"
@@ -902,7 +902,7 @@ export default function JarvisAssistant({ conversations, onSendMessage, isDarkMo
                   onChange={(e) => setSelectedVoiceURI(e.target.value)}
                   className={`w-full text-xs font-mono border rounded-lg p-2.5 focus:outline-none focus:border-[var(--brand-primary)] cursor-pointer ${
                     isDarkMode 
-                      ? "bg-zinc-900 border-zinc-850 text-zinc-200" 
+                      ? "bg-zinc-900 border-zinc-800 text-zinc-200" 
                       : "bg-white border-zinc-300 text-zinc-850 shadow-sm"
                   }`}
                 >
@@ -1004,7 +1004,7 @@ export default function JarvisAssistant({ conversations, onSendMessage, isDarkMo
                   <span className={isDarkMode ? "text-zinc-300" : "text-zinc-800"}>{lastMeasureLatency.tts} ms</span>
                 </div>
                 <div className={`flex justify-between border-t pt-1 font-bold text-xs ${
-                  isDarkMode ? "border-zinc-850 text-white" : "border-zinc-200 text-zinc-900"
+                  isDarkMode ? "border-zinc-800 text-white" : "border-zinc-200 text-zinc-900"
                 }`}>
                   <span>TEMPO TOTAL LOCAL:</span>
                   <span className="text-[var(--brand-light)] font-bold">

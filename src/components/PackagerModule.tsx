@@ -79,11 +79,11 @@ Filename: "{app}\\server.cjs"; Description: "{cm:LaunchProgram,${appName}}"; Fla
   };
 
   return (
-    <div className="bg-zinc-950/50 border border-zinc-850 p-6 rounded-2xl relative overflow-hidden">
+    <div className="bg-zinc-950/50 border border-zinc-800 p-6 rounded-2xl relative overflow-hidden">
       {/* Decorative background aura */}
       <div className="absolute top-0 right-0 w-64 h-64 bg-cyan-500/5 blur-[100px] rounded-full pointer-events-none" />
       
-      <div className="flex items-center gap-3 mb-6 border-b border-zinc-850 pb-4">
+      <div className="flex items-center gap-3 mb-6 border-b border-zinc-800 pb-4">
         <Package className="text-cyan-400 w-6 h-6 animate-pulse" />
         <div>
           <h2 className="text-lg font-bold text-[var(--brand-light)] font-mono tracking-wide">COMPILADORES NATIVOS & INNO SETUP</h2>
@@ -113,7 +113,7 @@ Filename: "{app}\\server.cjs"; Description: "{cm:LaunchProgram,${appName}}"; Fla
             />
           </div>
 
-          <div className="pt-3 pb-1 border-b border-zinc-850">
+          <div className="pt-3 pb-1 border-b border-zinc-800">
             <label className="flex items-start gap-2.5 cursor-pointer group">
               <input 
                 type="checkbox" 
@@ -174,8 +174,8 @@ Filename: "{app}\\server.cjs"; Description: "{cm:LaunchProgram,${appName}}"; Fla
         </div>
 
         {/* Right Side: Script preview */}
-        <div className="bg-zinc-950 border border-zinc-850 rounded-xl flex flex-col relative z-10 w-full overflow-hidden">
-          <div className="bg-zinc-900/40 rounded-t-xl px-4 py-3 border-b border-zinc-850 flex items-center justify-between">
+        <div className="bg-zinc-950 border border-zinc-800 rounded-xl flex flex-col relative z-10 w-full overflow-hidden">
+          <div className="bg-zinc-900/40 rounded-t-xl px-4 py-3 border-b border-zinc-800 flex items-center justify-between">
              <div className="flex items-center gap-2">
                <TerminalSquare className="w-4 h-4 text-cyan-400" />
                <span className="text-xs font-mono font-bold text-zinc-400">jarvis.iss</span>

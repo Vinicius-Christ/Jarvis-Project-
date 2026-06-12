@@ -125,7 +125,7 @@ export default function SSHDiagnostics() {
 
   return (
     <div className="space-y-6 font-mono text-zinc-300">
-      <div className="bg-zinc-900/35 border border-zinc-850 p-6 rounded-2xl">
+      <div className="bg-zinc-900/35 border border-zinc-800 p-6 rounded-2xl">
         <div className="border-b border-zinc-800 pb-4 mb-6">
           <div className="flex items-center gap-2 mb-1">
             <Shield className="h-5 w-5 text-emerald-400 animate-pulse" />
@@ -169,7 +169,7 @@ export default function SSHDiagnostics() {
                     disabled={runningAction !== null}
                     className={`px-3 py-1.5 rounded-lg text-[10px] font-bold tracking-wider cursor-pointer font-mono uppercase flex items-center gap-1.5 transition-all outline-none ${
                       runningAction !== null
-                        ? "bg-zinc-900 border border-zinc-850 text-zinc-650 cursor-not-allowed"
+                        ? "bg-zinc-900 border border-zinc-800 text-zinc-650 cursor-not-allowed"
                         : "bg-zinc-950 hover:bg-zinc-900 border border-zinc-800 hover:border-zinc-500 hover:text-zinc-100 active:scale-95"
                     }`}
                   >

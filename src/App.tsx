@@ -637,17 +637,17 @@ export default function App() {
   return (
     <div
       style={themeStyles}
-      className={`w-full min-h-screen flex font-sans overflow-hidden select-none transition-all duration-300 ${
+      className={`w-full min-h-screen flex font-sans overflow-hidden select-none transition-all duration-300 bg-[size:20px_20px] bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] ${
         "dark bg-[#020408] text-zinc-300"
       }`}
     >
       {/* Sidebar Navigation */}
       <aside
-        className={`${isSidebarOpen ? "w-64" : "w-16"} transition-all duration-300 flex flex-col border-r ${
+        className={`glass-panel ${isSidebarOpen ? "w-64" : "w-16"} transition-all duration-300 flex flex-col border-r ${
           "border-zinc-900 bg-[#020408]"
         } shrink-0 z-20`}
       >
-        <div className={`h-[73px] flex items-center justify-between p-4 border-b shrink-0 sticky top-0 ${
+        <div className={`h-[73px] flex items-center justify-between p-4 border-b shrink-0 sticky top-0 bg-transparent ${
           "border-zinc-900 bg-[#020408]"
         } z-30`}>
           {isSidebarOpen && (
@@ -780,7 +780,7 @@ export default function App() {
               <div className="flex items-center gap-2">
                 <h1
                   id="main_title"
-                  className={`text-2xl font-bold tracking-widest font-sans flex items-center gap-1.5 ${"text-white"}`}
+                  className={`text-2xl font-bold tracking-widest font-display flex items-center gap-1.5 ${"text-white"}`}
                 >
                   JARVIS{" "}
                   <span className="text-[var(--brand-light)]">CHRIST</span>
@@ -874,7 +874,7 @@ export default function App() {
                     console.error("Failed to toggle system", e);
                   }
                 }}
-                className={`px-4 py-2 border rounded font-mono text-xs font-bold uppercase tracking-widest transition-all
+                className={`px-4 py-2 border rounded hover-glow font-mono text-xs font-bold uppercase tracking-widest transition-all hover:scale-105 active:scale-95
                   ${
                     systemState?.systemActive
                       ? "bg-zinc-900 border-zinc-700 text-yellow-500 hover:bg-zinc-800"
@@ -900,7 +900,7 @@ export default function App() {
                 <span>
                   Uma nova alteração de código-fonte foi sincronizada no Git
                   remoto. Commit:{" "}
-                  <span className="text-cyan-400 bg-zinc-950 px-1.5 py-0.5 rounded border border-zinc-850 font-bold">
+                  <span className="text-cyan-400 bg-zinc-950 px-1.5 py-0.5 rounded border border-zinc-800 font-bold">
                     {updateState.remoteCommit}
                   </span>{" "}
                   - "{updateState.remoteMessage}"
@@ -912,7 +912,7 @@ export default function App() {
                 setActiveTab("settings");
                 setSettingsTab("updates");
               }}
-              className="px-4 py-1.5 bg-cyan-500/15 hover:bg-cyan-500 hover:text-black hover:shadow-[0_0_15px_rgba(6,182,212,0.4)] border border-cyan-500/50 text-cyan-300 font-bold tracking-wider rounded transition-all cursor-pointer whitespace-nowrap active:scale-95"
+              className="px-4 py-1.5 hover-glow bg-cyan-500/15 hover:bg-cyan-500 hover:text-black hover:shadow-[0_0_15px_rgba(6,182,212,0.4)] border border-cyan-500/50 text-cyan-300 font-bold tracking-wider rounded transition-all cursor-pointer whitespace-nowrap active:scale-95"
             >
               Sincronizar Código Agora
             </button>
@@ -943,7 +943,7 @@ export default function App() {
                     console.error("Failed to toggle system", e);
                   }
                 }}
-                className="mt-8 px-6 py-2 bg-[var(--brand-primary)] border border-[var(--brand-light)] text-white hover:bg-[var(--brand-light)] hover:text-black font-bold uppercase tracking-wider rounded font-mono shadow-[0_0_15px_var(--brand-glow-strong)] transition-all cursor-pointer"
+                className="mt-8 px-6 py-2 hover-glow bg-[var(--brand-primary)] border border-[var(--brand-light)] text-white hover:bg-[var(--brand-light)] hover:text-black font-bold uppercase tracking-wider rounded font-mono shadow-[0_0_15px_var(--brand-glow-strong)] transition-all cursor-pointer"
               >
                 🚀 Ligar JARVIS
               </button>
@@ -984,7 +984,7 @@ export default function App() {
                   </div>
 
                   {/* Home Assistant Quick IoT toggles */}
-                  <div className="bg-zinc-900/30 border border-zinc-850 p-5 rounded-2xl">
+                  <div className="holographic-card p-5">
                     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-zinc-800 pb-3 mb-4">
                       <div>
                         <h3 className="text-xs font-mono font-medium tracking-wider text-[var(--brand-light)] uppercase flex items-center gap-1.5">
@@ -1076,7 +1076,7 @@ export default function App() {
                 {/* Column 3: Telemetry, Pipeline preview, CPU graphics (HUD style sidebar) */}
                 <div className="space-y-6">
                   {/* MONITOR DE SAÚDE DO SISTEMA (DOCKER, OLLAMA, REDE) */}
-                  <div className="bg-zinc-900/45 border border-[var(--brand-border)] p-4 rounded-2xl space-y-4 shadow-[0_0_15px_var(--brand-glow)]">
+                  <div className="holographic-card p-4 space-y-4 shadow-[0_0_15px_var(--brand-glow)]">
                     <div className="flex justify-between items-center border-b border-zinc-900 pb-2">
                       <h3 className="text-xs font-mono font-bold tracking-widest text-[var(--brand-light)] uppercase flex items-center gap-1.5">
                         <Activity className="h-3.5 w-3.5 text-[var(--brand-light)] animate-pulse" />
@@ -1161,7 +1161,7 @@ export default function App() {
                   </div>
 
                   {/* Mini Pipeline Progression tracking */}
-                  <div className="bg-zinc-900/30 border border-zinc-850 p-4 rounded-2xl space-y-4">
+                  <div className="holographic-card p-4 space-y-4">
                     <h3 className="text-xs font-mono font-medium tracking-wider text-[var(--brand-light)] uppercase border-l border-[var(--brand-primary)] pl-2">
                       Pipeline de Deploy
                     </h3>
@@ -1275,7 +1275,7 @@ export default function App() {
                   </div>
 
                   {/* Hardware Spec monitors (simulating Windows child monitoring threads) */}
-                  <div className="bg-zinc-900/30 border border-zinc-850 p-4 rounded-2xl space-y-4">
+                  <div className="holographic-card p-4 space-y-4">
                     <div className="flex justify-between items-center border-l border-[var(--brand-primary)] pl-2">
                       <h3 className="text-xs font-mono font-medium tracking-wider text-[var(--brand-light)] uppercase">
                         Métricas de VRAM & Processamento
@@ -1406,7 +1406,7 @@ export default function App() {
                             "Preparar meu ambiente de estudos no PC principal",
                           )
                         }
-                        className="w-full text-left bg-zinc-900/60 hover:bg-[var(--brand-dark)] p-2 rounded border border-zinc-850 hover:border-[var(--brand-border)] text-[var(--brand-light)] cursor-pointer flex justify-between items-center"
+                        className="w-full text-left bg-zinc-900/60 hover:bg-[var(--brand-dark)] p-2 rounded border border-zinc-800 hover:border-[var(--brand-border)] text-[var(--brand-light)] cursor-pointer flex justify-between items-center"
                       >
                         <span>📚 Modo Estudos (Macro PC)</span>
                         <ChevronRight className="h-3 w-3" />
@@ -1417,7 +1417,7 @@ export default function App() {
                             "Quanto gastei na minha categoria de Alimentação este mês?",
                           )
                         }
-                        className="w-full text-left bg-zinc-900/60 hover:bg-[var(--brand-dark)] p-2 rounded border border-zinc-850 hover:border-[var(--brand-border)] text-[var(--brand-light)] cursor-pointer flex justify-between items-center"
+                        className="w-full text-left bg-zinc-900/60 hover:bg-[var(--brand-dark)] p-2 rounded border border-zinc-800 hover:border-[var(--brand-border)] text-[var(--brand-light)] cursor-pointer flex justify-between items-center"
                       >
                         <span>💳 Consulta de iFood (RAG / DB)</span>
                         <ChevronRight className="h-3 w-3" />
@@ -1428,7 +1428,7 @@ export default function App() {
                             "Como está meu briefing de agenda para amanhã?",
                           )
                         }
-                        className="w-full text-left bg-zinc-900/60 hover:bg-[var(--brand-dark)] p-2 rounded border border-zinc-850 hover:border-[var(--brand-border)] text-[var(--brand-light)] cursor-pointer flex justify-between items-center"
+                        className="w-full text-left bg-zinc-900/60 hover:bg-[var(--brand-dark)] p-2 rounded border border-zinc-800 hover:border-[var(--brand-border)] text-[var(--brand-light)] cursor-pointer flex justify-between items-center"
                       >
                         <span>📅 Eventos Agendados</span>
                         <ChevronRight className="h-3 w-3" />
@@ -1444,7 +1444,7 @@ export default function App() {
               <div className="space-y-6 animate-fade-in">
                 <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
                   {/* Financial Summary & Chart */}
-                  <div className="bg-zinc-900/50 border border-zinc-850 p-5 rounded-2xl space-y-6">
+                  <div className="holographic-card p-5 space-y-6">
                     <div>
                       <h3 className="text-xs font-mono font-medium text-[var(--brand-light)] uppercase flex items-center gap-1.5 mb-1">
                         <DollarSign className="h-4 w-4" />
@@ -1544,10 +1544,10 @@ export default function App() {
                           />
                           <Tooltip
                             contentStyle={{
-                              backgroundColor: "var(--color-zinc-950)",
-                              borderColor: "var(--color-zinc-850)",
+                              backgroundColor: "#09090b",
+                              borderColor: "#27272a",
                             }}
-                            labelStyle={{ color: "var(--color-zinc-400)", fontSize: 10 }}
+                            labelStyle={{ color: "#a1a1aa", fontSize: 10 }}
                           />
                           <Line
                             type="monotone"
@@ -1563,7 +1563,7 @@ export default function App() {
                   </div>
 
                   {/* Form & Table */}
-                  <div className="bg-zinc-900/50 border border-zinc-850 p-5 rounded-2xl col-span-1 xl:col-span-2 flex flex-col space-y-6">
+                  <div className="holographic-card p-5 col-span-1 xl:col-span-2 flex flex-col space-y-6">
                     <div>
                       <h3 className="text-xs font-mono font-medium text-[var(--brand-light)] uppercase tracking-widest border-l border-[var(--brand-primary)] pl-2 mb-4">
                         Lançamento Manual & RAG Financeiro
@@ -1572,7 +1572,7 @@ export default function App() {
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <form
                           onSubmit={handleFinanceSubmit}
-                          className="space-y-3 bg-zinc-950 border border-zinc-850 p-4 rounded-xl"
+                          className="space-y-3 bg-zinc-950 border border-zinc-800 p-4 rounded-xl"
                         >
                           <h4 className="text-[11px] text-zinc-400 font-mono mb-2">
                             Registrar nova despesa/ganho
@@ -1682,7 +1682,7 @@ export default function App() {
                               Fazer Upload Extrato (PDF)
                               <input
                                 type="file"
-                                className="hidden"
+                                className="hidden transition-all duration-300 hover:border-zinc-600 focus:shadow-[0_0_15px_var(--brand-glow)]"
                                 onChange={(e) =>
                                   handleFileUpload(e, "Finanças")
                                 }
@@ -1727,10 +1727,10 @@ export default function App() {
                             />
                             <Tooltip
                               contentStyle={{
-                                backgroundColor: "var(--color-zinc-950)",
-                                borderColor: "var(--color-zinc-850)",
+                                backgroundColor: "#09090b",
+                                borderColor: "#18181b",
                               }}
-                              labelStyle={{ color: "var(--color-zinc-400)", fontSize: 10 }}
+                              labelStyle={{ color: "#a1a1aa", fontSize: 10 }}
                             />
                             <Bar
                               dataKey="gasto"
@@ -1805,7 +1805,7 @@ export default function App() {
             {/* TAB 4: AGENDA */}
             {activeTab === "agenda" && (
               <div className="space-y-6 animate-fade-in">
-                <div className="bg-zinc-900/50 border border-zinc-850 p-5 rounded-2xl flex flex-col xl:flex-row gap-6">
+                <div className="holographic-card p-5 flex flex-col xl:flex-row gap-6">
                   <div className="w-full xl:w-1/3 flex flex-col gap-6">
                     <div className="flex justify-between items-center mb-1">
                       <h3 className="text-xs font-mono font-medium text-[var(--brand-light)] uppercase flex items-center gap-1.5 border-b border-[var(--brand-dark)] pb-2 mb-2 w-full">
@@ -1816,7 +1816,7 @@ export default function App() {
 
                     <form
                       onSubmit={handleAgendaSubmit}
-                      className="space-y-3 bg-zinc-950 border border-zinc-850 p-4 rounded-xl flex-1"
+                      className="space-y-3 bg-zinc-950 border border-zinc-800 p-4 rounded-xl flex-1"
                     >
                       <h4 className="text-[11px] text-zinc-400 font-mono mb-2">
                         Agendar novo compromisso
@@ -1900,7 +1900,7 @@ export default function App() {
                       </button>
                     </form>
 
-                    <div className="bg-zinc-950 border border-zinc-850 p-4 rounded-xl text-center">
+                    <div className="bg-zinc-950 border border-zinc-800 p-4 rounded-xl text-center">
                       <h4 className="text-[11px] text-zinc-300 font-mono mb-2">
                         Adição por Arquivos via IA
                       </h4>
@@ -1912,7 +1912,7 @@ export default function App() {
                         📤 Upload de Arquivo (PDF/CSV)
                         <input
                           type="file"
-                          className="hidden"
+                          className="hidden transition-all duration-300 hover:border-zinc-600 focus:shadow-[0_0_15px_var(--brand-glow)]"
                           onChange={(e) => handleFileUpload(e, "Agenda")}
                           accept=".pdf,.txt,.ics"
                         />
@@ -1920,7 +1920,7 @@ export default function App() {
                     </div>
                   </div>
 
-                  <div className="w-full xl:w-2/3 border-t xl:border-t-0 xl:border-l border-zinc-850 xl:pl-6 pt-6 xl:pt-0">
+                  <div className="w-full xl:w-2/3 border-t xl:border-t-0 xl:border-l border-zinc-800 xl:pl-6 pt-6 xl:pt-0">
                     <h3 className="text-xs font-mono font-medium text-zinc-300 uppercase tracking-widest pl-2 border-l-2 border-[var(--brand-primary)] mb-4">
                       Compromissos Registrados
                     </h3>
@@ -1928,7 +1928,7 @@ export default function App() {
                       {systemState?.agenda.map((item: any) => (
                         <div
                           key={item.id}
-                          className="bg-zinc-950 p-4 rounded-xl border border-zinc-850/60 flex flex-col h-full hover:border-zinc-700 transition duration-300"
+                          className="bg-zinc-950 p-4 rounded-xl border border-zinc-800/60 flex flex-col h-full hover:border-zinc-700 transition duration-300"
                         >
                           <div className="flex justify-between items-start mb-2">
                             <span className="px-2 py-0.5 bg-[var(--brand-dark)] border border-[var(--brand-border)] text-[9px] text-[var(--brand-light)] rounded">
@@ -1971,7 +1971,7 @@ export default function App() {
             {/* TAB 4: CONFIGURAÇÕES & IOT */}
             {activeTab === "settings" && (
               <div className="space-y-6 flex flex-col h-full overflow-hidden">
-                <div className="flex gap-2 border-b border-zinc-850 pb-px font-mono text-xs shrink-0 overflow-x-auto">
+                <div className="flex gap-2 border-b border-zinc-800 pb-px font-mono text-xs shrink-0 overflow-x-auto">
                   <button
                     onClick={() => setSettingsTab("general")}
                     className={`px-4 py-2 border-b-2 font-bold tracking-wider transition-all cursor-pointer whitespace-nowrap ${
@@ -2112,7 +2112,7 @@ export default function App() {
                 {settingsTab === "obsidian" && (
                   <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 font-mono">
                     {/* Left selector listing virtual files in obsidian */}
-                    <div className="bg-zinc-900/50 border border-zinc-850 p-4 rounded-2xl space-y-3">
+                    <div className="holographic-card p-4 space-y-3">
                       <h3 className="text-xs font-bold text-[var(--brand-light)] uppercase tracking-widest pl-2 border-l border-[var(--brand-primary)] mb-4 animate-pulse">
                         Obsidian Vault Explorer
                       </h3>
@@ -2129,7 +2129,7 @@ export default function App() {
                         {systemState?.obsidianNotes?.map((note: any) => (
                           <button
                             key={note.path}
-                            className="w-full text-left p-2.5 rounded-lg border border-zinc-850 bg-zinc-950 hover:bg-zinc-900/80 transition text-zinc-300 block hover:border-[var(--brand-border)] text-[11px] cursor-pointer"
+                            className="w-full text-left p-2.5 rounded-lg border border-zinc-800 bg-zinc-950 hover:bg-zinc-900/80 transition text-zinc-300 block hover:border-[var(--brand-border)] text-[11px] cursor-pointer"
                           >
                             <span className="block font-bold text-white text-[10px] text-[var(--brand-light)]">
                               📝 {note.path}
@@ -2143,7 +2143,7 @@ export default function App() {
                     </div>
 
                     {/* Note Editor area */}
-                    <div className="lg:col-span-3 bg-zinc-900/50 border border-zinc-850 p-5 rounded-2xl flex flex-col justify-between">
+                    <div className="lg:col-span-3 bg-zinc-900/50 border border-zinc-800 p-5 rounded-2xl flex flex-col justify-between">
                       <div>
                         <div className="flex justify-between items-center border-b border-zinc-800 pb-3 mb-4">
                           <div>
@@ -2164,7 +2164,7 @@ export default function App() {
                             (note: any, index: number) => (
                               <div
                                 key={index}
-                                className="bg-black/40 border border-zinc-850/60 rounded-xl p-4"
+                                className="bg-black/40 border border-zinc-800/60 rounded-xl p-4"
                               >
                                 <div className="text-[10px] font-bold text-yellow-400 mb-2 font-mono flex items-center gap-1">
                                   <span className="h-1.5 w-1.5 rounded-full bg-yellow-400"></span>
@@ -2187,7 +2187,7 @@ export default function App() {
                         </div>
                       </div>
 
-                      <div className="border-t border-zinc-850 pt-3 mt-4 text-[10px] text-zinc-500 leading-normal">
+                      <div className="border-t border-zinc-800 pt-3 mt-4 text-[10px] text-zinc-500 leading-normal">
                         💡 <strong>Dica do JARVIS:</strong> Ao salvar
                         modificações em arquivos Markdown no Obsidian Vault, os
                         triggers automáticos do n8n atualizam o ChromaDB
@@ -2218,7 +2218,7 @@ export default function App() {
             {activeTab === "readme" && (
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 font-sans leading-relaxed text-zinc-300">
                 {/* Quick specifications left menu */}
-                <div className="bg-zinc-900/50 border border-zinc-850 p-5 rounded-2xl space-y-4">
+                <div className="holographic-card p-5 space-y-4">
                   <h3 className="text-xs font-mono font-medium tracking-wider text-[var(--brand-light)] uppercase border-l border-[var(--brand-primary)] pl-2">
                     Guia de Utilização do Instalador
                   </h3>
@@ -2321,8 +2321,8 @@ export default function App() {
                 </div>
 
                 {/* Readme details */}
-                <div className="lg:col-span-2 bg-zinc-900/50 border border-zinc-850 p-6 rounded-2xl overflow-y-auto leading-relaxed text-xs space-y-5 shadow-inner">
-                  <div className="border-b border-zinc-850 pb-4">
+                <div className="lg:col-span-2 bg-zinc-900/50 border border-zinc-800 p-6 rounded-2xl overflow-y-auto leading-relaxed text-xs space-y-5 shadow-inner">
+                  <div className="border-b border-zinc-800 pb-4">
                     <h2 className="text-xl font-bold text-white tracking-wide">
                       JARVIS v5.0 — Manual de Arquitetura
                     </h2>

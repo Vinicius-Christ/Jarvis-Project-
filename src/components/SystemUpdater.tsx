@@ -115,7 +115,7 @@ export default function SystemUpdater({ updateState, onRefresh }: SystemUpdaterP
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
         
         {/* Card 1: Branch/Repo Configurations */}
-        <div className="bg-zinc-900/50 border border-zinc-850 p-5 rounded-2xl flex flex-col justify-between space-y-4">
+        <div className="holographic-card p-5 flex flex-col justify-between space-y-4">
           <div>
             <div className="flex items-center gap-2 mb-3">
               <Github className="h-5 w-5 text-zinc-400" />
@@ -132,7 +132,7 @@ export default function SystemUpdater({ updateState, onRefresh }: SystemUpdaterP
                   value={repoInput}
                   onChange={(e) => setRepoInput(e.target.value)}
                   placeholder="usuario/nome-repo"
-                  className="w-full bg-zinc-950 border border-zinc-850 focus:border-cyan-500/50 rounded-lg p-2.5 text-xs text-white font-mono placeholder-zinc-700 outline-none"
+                  className="w-full bg-zinc-950 border border-zinc-800 focus:border-cyan-500/50 rounded-lg p-2.5 text-xs text-white font-mono placeholder-zinc-700 outline-none"
                 />
               </div>
               <div>
@@ -142,7 +142,7 @@ export default function SystemUpdater({ updateState, onRefresh }: SystemUpdaterP
                   value={tokenInput}
                   onChange={(e) => setTokenInput(e.target.value)}
                   placeholder="ghp_xxxxxxxxxxxxxxxxxxxxx"
-                  className="w-full bg-zinc-950 border border-zinc-850 focus:border-cyan-500/50 rounded-lg p-2.5 text-xs text-white font-mono placeholder-zinc-700 outline-none"
+                  className="w-full bg-zinc-950 border border-zinc-800 focus:border-cyan-500/50 rounded-lg p-2.5 text-xs text-white font-mono placeholder-zinc-700 outline-none"
                 />
               </div>
             </div>
@@ -158,9 +158,9 @@ export default function SystemUpdater({ updateState, onRefresh }: SystemUpdaterP
         </div>
 
         {/* Card 2: Sync Stats Checker */}
-        <div className="xl:col-span-2 bg-zinc-900/50 border border-zinc-850 p-5 rounded-2xl flex flex-col justify-between space-y-4">
+        <div className="xl:col-span-2 bg-zinc-900/50 border border-zinc-800 p-5 rounded-2xl flex flex-col justify-between space-y-4">
           <div>
-            <div className="flex items-center justify-between mb-4 border-b border-zinc-850/50 pb-3">
+            <div className="flex items-center justify-between mb-4 border-b border-zinc-800/50 pb-3">
               <div className="flex items-center gap-2">
                 <GitCommit className="h-5 w-5 text-[var(--brand-light)]" />
                 <h3 className="font-bold text-white uppercase text-[11px] tracking-wider">Estado da Sincronia</h3>
@@ -188,7 +188,7 @@ export default function SystemUpdater({ updateState, onRefresh }: SystemUpdaterP
             </div>
 
             {updateState?.remoteMessage && (
-              <div className="mt-4 p-3 bg-zinc-950 border border-zinc-850 rounded-xl">
+              <div className="mt-4 p-3 bg-zinc-950 border border-zinc-800 rounded-xl">
                 <span className="text-[9px] text-zinc-500 uppercase block mb-1">Última alteração identificada no Git</span>
                 <span className="text-zinc-300 italic text-[11px]">"{updateState.remoteMessage}"</span>
               </div>
@@ -210,7 +210,7 @@ export default function SystemUpdater({ updateState, onRefresh }: SystemUpdaterP
               className={`flex-1 py-2.5 font-bold rounded-lg transition flex items-center justify-center gap-2 cursor-pointer text-[11px]
                 ${updateState?.status === "available" 
                   ? "bg-cyan-500 hover:bg-cyan-400 text-black shadow-[0_0_15px_rgba(6,182,212,0.3)]" 
-                  : "bg-zinc-950 border border-zinc-850 text-zinc-600 cursor-not-allowed"
+                  : "bg-zinc-950 border border-zinc-800 text-zinc-600 cursor-not-allowed"
                 }
               `}
             >
@@ -223,7 +223,7 @@ export default function SystemUpdater({ updateState, onRefresh }: SystemUpdaterP
 
       {/* Card 3: Terminal Logs for updates */}
       <div className="bg-zinc-950 border border-zinc-900 rounded-2xl overflow-hidden shadow-2xl">
-        <div className="bg-zinc-900/60 border-b border-zinc-850 px-4 py-2.5 flex items-center justify-between">
+        <div className="bg-zinc-900/60 border-b border-zinc-800 px-4 py-2.5 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Terminal className="h-4 w-4 text-cyan-400 animate-pulse" />
             <h4 className="font-bold text-white uppercase text-[10px] tracking-wider font-mono">Terminal Master — Atualizador</h4>

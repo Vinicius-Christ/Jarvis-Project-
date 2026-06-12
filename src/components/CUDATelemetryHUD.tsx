@@ -109,7 +109,7 @@ export default function CUDATelemetryHUD() {
 
   return (
     <div className="space-y-6 font-mono text-zinc-300">
-      <div className="bg-zinc-900/35 border border-zinc-850 p-6 rounded-2xl">
+      <div className="bg-zinc-900/35 border border-zinc-800 p-6 rounded-2xl">
         
         {/* Header HUD section */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-zinc-800 pb-4 mb-6">
@@ -297,14 +297,14 @@ export default function CUDATelemetryHUD() {
                   <YAxis stroke="#475569" fontSize={9} tickLine={false} unit="G" />
                   <Tooltip
                     contentStyle={{
-                      backgroundColor: "var(--color-zinc-950)",
-                      border: "1px solid var(--color-zinc-850)",
+                      backgroundColor: "#09090b",
+                      border: "1px solid #18181b",
                       borderRadius: "12px",
                       fontFamily: "monospace",
                       fontSize: "10.5px"
                     }}
-                    itemStyle={{ color: "var(--color-zinc-400)" }}
-                    labelStyle={{ color: "var(--color-zinc-400)" }}
+                    itemStyle={{ color: "#a1a1aa" }}
+                    labelStyle={{ color: "#a1a1aa" }}
                   />
                   <Area
                     name="Saturação VRAM (GB)"

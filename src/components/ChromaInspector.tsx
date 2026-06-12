@@ -141,7 +141,7 @@ export default function ChromaInspector() {
 
   return (
     <div className="space-y-6 font-mono text-zinc-300">
-      <div className="bg-zinc-900/35 border border-zinc-850 p-6 rounded-2xl">
+      <div className="bg-zinc-900/35 border border-zinc-800 p-6 rounded-2xl">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-zinc-800 pb-4 mb-6">
           <div>
             <div className="flex items-center gap-2 mb-1">
@@ -232,7 +232,7 @@ export default function ChromaInspector() {
               placeholder="Buscar memórias indexadas no ChromaDB..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full bg-zinc-950/60 border border-zinc-850 p-2.5 pl-10 rounded-xl text-xs text-zinc-200 outline-none focus:border-cyan-500"
+              className="w-full bg-zinc-950/60 border border-zinc-800 p-2.5 pl-10 rounded-xl text-xs text-zinc-200 outline-none focus:border-cyan-500"
             />
           </div>
 
@@ -241,7 +241,7 @@ export default function ChromaInspector() {
             <select
               value={filterCategory}
               onChange={(e) => setFilterCategory(e.target.value)}
-              className="bg-zinc-950/60 border border-zinc-850 p-2.5 rounded-xl text-xs text-zinc-500 outline-none focus:border-cyan-500 cursor-pointer text-zinc-300"
+              className="bg-zinc-950/60 border border-zinc-800 p-2.5 rounded-xl text-xs text-zinc-500 outline-none focus:border-cyan-500 cursor-pointer text-zinc-300"
             >
               <option value="all">Todas as Categorias</option>
               {categories.map((c) => (
@@ -264,7 +264,7 @@ export default function ChromaInspector() {
             ⚠️ {error}
           </div>
         ) : filteredMemories.length === 0 ? (
-          <div className="py-12 text-center border border-dashed border-zinc-850 rounded-2xl text-xs text-zinc-500">
+          <div className="py-12 text-center border border-dashed border-zinc-800 rounded-2xl text-xs text-zinc-500">
             Nenhum fragmento de memória vetorial correspondente foi indexado.
           </div>
         ) : (
@@ -351,14 +351,14 @@ export default function ChromaInspector() {
                         <>
                           <button
                             onClick={() => startEdit(m)}
-                            className="p-1.5 bg-zinc-900 hover:bg-cyan-950/30 border border-zinc-850 hover:border-cyan-900 text-zinc-400 hover:text-cyan-400 rounded-lg transition-all cursor-pointer active:scale-95"
+                            className="p-1.5 bg-zinc-900 hover:bg-cyan-950/30 border border-zinc-800 hover:border-cyan-900 text-zinc-400 hover:text-cyan-400 rounded-lg transition-all cursor-pointer active:scale-95"
                             title="Editar"
                           >
                             <Edit className="h-3 w-3" />
                           </button>
                           <button
                             onClick={() => handleDeleteMemory(m.id)}
-                            className="p-1.5 bg-zinc-900 hover:bg-red-950/30 border border-zinc-850 hover:border-red-900 text-zinc-400 hover:text-red-400 rounded-lg transition-all cursor-pointer active:scale-95"
+                            className="p-1.5 bg-zinc-900 hover:bg-red-950/30 border border-zinc-800 hover:border-red-900 text-zinc-400 hover:text-red-400 rounded-lg transition-all cursor-pointer active:scale-95"
                             title="Delete"
                           >
                             <Trash2 className="h-3 w-3" />
